@@ -41,7 +41,8 @@ export function PhysicalCassette({ mix, running, progress, resetKey }: Props) {
     return () => window.cancelAnimationFrame(id);
   }, [running, reducedMotion]);
 
-  return <div className="deck-tape" role="img" aria-label={`${mix.title} cassette; ${running ? 'tape moving' : 'tape stopped'}`}>
+  return <div className="cassette-portrait">
+    <div className="deck-tape" role="img" aria-label={`${mix.title} cassette; ${running ? 'tape moving' : 'tape stopped'}`}>
     <img className="deck-cassette-layer deck-cassette-label" src="/assets/cassette-labels/label.png" alt="" draggable={false} />
     <div className="deck-cassette-spool deck-cassette-spool--wind left">
       <img className="deck-cassette-layer deck-cassette-wind" src="/assets/cassette-labels/tape%20wind.png" alt="" draggable={false} ref={windLeft} />
@@ -50,12 +51,14 @@ export function PhysicalCassette({ mix, running, progress, resetKey }: Props) {
       <img className="deck-cassette-layer deck-cassette-wind" src="/assets/cassette-labels/tape%20wind.png" alt="" draggable={false} ref={windRight} />
     </div>
     <img className="deck-cassette-layer deck-cassette-shell" src="/assets/cassette-labels/shell.png" alt="" draggable={false} />
+    <img className="deck-cassette-layer deck-cassette-guide-roller" src="/assets/cassette-labels/guide-roller.png" alt="" draggable={false} />
     <div className="deck-cassette-spool deck-cassette-spool--reel left">
       <img className="deck-cassette-layer deck-cassette-reel" src="/assets/cassette-labels/reel.png" alt="" draggable={false} ref={left} />
     </div>
     <div className="deck-cassette-spool deck-cassette-spool--reel right">
       <img className="deck-cassette-layer deck-cassette-reel" src="/assets/cassette-labels/reel.png" alt="" draggable={false} ref={right} />
     </div>
-    <img className="deck-cassette-layer deck-cassette-glass" src="/assets/cassette-labels/glass.png" alt="" draggable={false} />
+      <img className="deck-cassette-layer deck-cassette-glass" src="/assets/cassette-labels/glass.png" alt="" draggable={false} />
+    </div>
   </div>;
 }

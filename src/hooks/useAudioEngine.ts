@@ -45,14 +45,18 @@ export function useAudioEngine(src: string) {
   }, [src]);
 
   // Must be invoked directly from the user's PLAY click before any awaited delay.
-  const play = useCallback(() => {
+  const play = useCallback(async () => {
     const audio = audioRef.current;
-    if (!audio) return Promise.reject(new Error('Audio not initialized'));
+    if (!audio) {
+      setError('Audio player is not ready yet.');
+      return;
+    }
     if (audio.ended) audio.currentTime = 0;
-    return audio.play().catch(err => {
+    try {
+      await audio.play();
+    } catch {
       setError('Playback was blocked or this audio file could not be opened.');
-      throw err;
-    });
+    }
   }, []);
   const pause = useCallback(() => audioRef.current?.pause(), []);
   const seek = useCallback((time: number) => {
