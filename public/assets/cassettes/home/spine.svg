@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" preserveAspectRatio="none">
+  <title>You Feel Like Home — cassette spine</title>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2=".46">
+      <stop offset="0" stop-color="#efac8c" />
+      <stop offset=".37" stop-color="#f0b89d" />
+      <stop offset="1" stop-color="#e99e8a" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="80" fill="url(#background)" />
+  <g>
+    <g stroke="#743c43" fill="none" stroke-width="1.3">
+      <path d="M346 88q-15-39-3-67M351 83q3-46 26-63M340 78q-19-25-18-45M30 80q11-32 3-57M29 76Q8 54 9 38" />
+      <path d="M343 61q-19 1-19-17 17 1 19 17ZM356 58q20-1 18-18-16 2-18 18ZM339 73q-9-1-12-13M30 61Q49 59 45 43 31 45 30 61ZM19 65Q4 64 4 50q13 0 15 15Z" />
+    </g>
+    <g fill="#e8c2a4">
+      <path d="M337 26c-13-1-9-12-1-9-6-11 6-15 9-5 7-10 17-1 8 6 12 0 10 12 0 10 7 8-4 15-8 5-6 8-14 2-8-7ZM372 23c-11 0-10-9-2-10-4-7 5-12 9-4 7-5 13 4 5 9 8 5 1 13-6 7-4 8-12 5-6-2ZM28 26c-11-2-9-10-1-10-3-9 8-12 10-3 8-4 12 6 3 9 7 8-3 14-8 6-6 6-12 0-4-2Z" />
+      <circle cx="320" cy="34" r="7" />
+    </g>
+    <g fill="#9f4c50">
+      <circle cx="345" cy="22" r="4" />
+      <circle cx="377" cy="18" r="3" />
+      <circle cx="32" cy="21" r="3" />
+      <circle cx="320" cy="34" r="2" />
+    </g>
+    <path d="M64 66q112 9 236-3" stroke="#743c43" fill="none" opacity=".3" />
+  </g>
+  <text x="200" y="42" text-anchor="middle" dominant-baseline="middle" fill="#743c43" font-family="Snell Roundhand, Segoe Script, Brush Script MT, cursive" font-style="italic" font-weight="500" font-size="28" letter-spacing="-.95" textLength="284" lengthAdjust="spacingAndGlyphs">You Feel Like Home</text>
+</svg>

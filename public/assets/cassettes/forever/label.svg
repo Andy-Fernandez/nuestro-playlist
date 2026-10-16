@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1076 610">
+  <title>Forever Us — cassette label</title>
+  <defs>
+    <clipPath id="label-clip">
+      <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" clip-rule="evenodd" />
+    </clipPath>
+    <linearGradient id="label-gradient" x1="0" y1="0" x2=".8" y2="1">
+      <stop stop-color="#33264d" />
+      <stop offset="1" stop-color="#141627" />
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#label-clip)">
+    <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" fill="#161018" fill-rule="evenodd" />
+    <path d="M-80 106L411-15L524 56L-35 240ZM755 487L1149 383L1156 536L784 638Z" fill="#ee2b91" />
+    <path d="M817 11L749 134L832 127L765 263L963 78L862 96L903 11Z" fill="#ee2b91" />
+    <path d="M94 548L192 513L281 567L374 521L478 573" fill="none" stroke="#ea3397" stroke-width="14" />
+    <path d="M66 31H1010V581H66Z" fill="none" stroke="#e6d6cd" stroke-width="2" opacity=".5" />
+    <text x="490" y="191" text-anchor="middle" fill="#f2e5d0" stroke="#161018" stroke-width="8" paint-order="stroke" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-style="italic" font-size="98" letter-spacing="-5" lengthAdjust="spacingAndGlyphs">FOREVER US</text>
+    <path d="M950 447L974 475L1009 452L998 493L1036 513L994 518L992 560L967 528L931 552L941 511L903 491L946 487Z" fill="#f2e5d0" />
+  </g>
+</svg>

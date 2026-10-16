@@ -1,53 +1,29 @@
-# Make it yours — a practical roadmap
+# Personalizar Loveline
 
-This project is meant to be modified by you, one small part at a time.
+## Audio y cubiertas
 
-## Level 1 — Personalize without changing mechanics
+Añade tus archivos a `public/audio/`, crea entradas con `id`, `title`, `artist` y `src` en `SONGS`, y asigna sus IDs a `MIXTAPES[].songIds` en `src/data/mixtapes.ts`. Los controles de pistas aparecen cuando un casete contiene más de una canción.
 
-- Open `src/data/mixtapes.ts`: replace dates, dedication text, titles and track metadata.
-- Try adding a new cassette entry by copying an object in `MIXTAPES`.
-- Replace `public/audio/demo-1.mp3` with one of your own recordings (or change the `src` path).
-- Try a new shell palette in `PhysicalCassette.tsx` under `skins`.
+Las imágenes se asignan con `artwork.spine`, `artwork.label`, `hardware.reel` y `hardware.guideRoller`. Cada casete tiene su propia carpeta; consulta [ASSETS.md](ASSETS.md) para editar las cubiertas, cambiar colores de los carretes o sustituir imágenes.
 
-## Level 2 — Physical layers
+La PWA incluye los archivos locales al compilar. Si añades archivos de más de 5 MiB, ajusta `maximumFileSizeToCacheInBytes` en `vite.config.ts` para incluirlos en la caché sin conexión.
 
-Current element tree:
+## Tema y proporciones
 
-```text
-PhysicalCassette
-  .deck-tape                       plastic shell
-    .deck-tape-paper               paper sleeve / printed design
-      .deck-paper-head             title / side A
-      .deck-window                 transparent tape window
-        .deck-reel.left            left supply reel
-          .deck-wind               magnetic tape rings
-          .deck-spokes             rotating hub
-        .deck-reel.right           right take-up reel
-    .deck-screw                    metal screws
-    .deck-tape-bottom              bottom guide cutout
-```
+`src/styles/app.css` define `--text-primary`, `--text-secondary`, `--surface-page`, `--surface-panel`, `--border-subtle` y `--color-loveline`. Escritorio y móvil usan el mismo tema oscuro; las portadas mantienen sus colores.
 
-A realistic shell can use a transparent PNG texture as one CSS background layer; don't cover the animated reels with a flattened full-cassette photograph. Keep the spindle SVGs/DOM elements independent. The shell and paper sleeve may receive different skins without altering mechanical state.
+`src/styles/cassette.css` gira el conjunto físico −90° y usa una proporción vertical `63.8 / 100.4`. Las capas se ajustan como un solo conjunto, conservando alineación y centros de giro. El mecanismo vacío es `public/assets/background.png`; `.deck-bay` dimensiona la casetera y `.cassette-insertion` coloca el casete encima.
 
-For a custom label, you could add an optional `labelImage` field to each `Mixtape` and place an `<img>` inside `.deck-tape-paper`, **behind** the moving reels.
+## Inserción y expulsión
 
-## Level 3 — Improve physical motion
+`useCassetteTransport.ts` carga y decodifica las imágenes antes de mostrarlas. Sus estados son `empty → loading → inserting → ready → ejecting → empty`. Al cambiar de casete, conserva el anterior hasta completar su expulsión y luego introduce el nuevo. Los controles quedan bloqueados durante la carga y el movimiento.
 
-- Change transition duration/easing of `.deck-tape-wrap` (insertion/ejection) in `deck-original.css`.
-- Adjust physical audio click frequencies in `src/utils/sfx.ts` or replace the procedural sounds with your own `.wav` files.
-- In `PhysicalCassette.tsx`, modify the reel speeds; they now depend gently on progress.
-- Build a hinged `CassetteDoor` component as a **separate layer**, animated only on Insert/Eject.
+Las trayectorias y duraciones están centralizadas en `src/config/cassetteMotion.ts`: inserción **1.18 s**, expulsión **1.45 s**. El transporte avanza mediante `onAnimationComplete`, sin temporizadores paralelos. Los sonidos usan esas mismas duraciones. La preferencia de movimiento reducido activa trayectos mínimos y mantiene los carretes inmóviles.
 
-## Level 4 — More realism, still simple
+La música empieza con **PLAY**; **STOP** conserva el tiempo y **EJECT** lo reinicia. El audio y las transiciones físicas se controlan por separado.
 
-- Replace CSS spokes with intricate transparent SVG reel artwork.
-- Add imperfect brushed metal, small shadows and light scratches to the deck via texture images.
-- Integrate rewind/fast-forward behavior without changing the core state model.
-- Add Side B, track metadata inside the paper label and individual stickers.
-- Add a minimal “reduced motion” toggle in addition to the browser's preference.
+## Teclas y sonidos
 
-## Motion design notes (from your research)
+`.transport-key` y `.key-face` en `app.css` definen los materiales, las sombras y el recorrido al pulsar. `.is-latched` mantiene PLAY hundida durante la reproducción.
 
-The cassette is the protagonist. Motion primarily uses `transform` and `opacity`; reels are independently controlled and should follow real playback. Use a library-to-deck fade/slide while transitioning a sideways cassette *case* to a front-facing cassette *shell*; a literal shared-element morph would distort the geometry.
-
-Keep important controls accessible and visible; mechanical animations are feedback, not the sole way to understand playback state. Avoid extra animation dependencies until a specific need appears. Motion manages screen transitions; CSS and requestAnimationFrame manage the physical machine.
+`src/utils/mechanicalAudio.ts` sintetiza impactos y roces con Web Audio. Ajusta `output.gain.value` para cambiar su volumen; conserva `playMechanicalSound(kind)` si sustituyes la síntesis por grabaciones locales.

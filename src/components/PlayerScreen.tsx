@@ -1,74 +1,99 @@
+import type { CSSProperties } from 'react';
+import { motion } from 'motion/react';
 import type { Song, Mixtape } from '../data/mixtapes';
 import { formatTime } from '../utils/deck';
 import { PhysicalCassette } from './PhysicalCassette';
 import { Icon } from './Icon';
+import { CASSETTE_INITIAL_POSE, CASSETTE_MOTION_VARIANTS, CASSETTE_REDUCED_MOTION_VARIANTS, CASSETTE_PERSPECTIVE, type CassetteState, type CassetteMotionPhase } from '../config/cassetteMotion';
 
 type Props = {
-  mix: Mixtape;
+  mix: Mixtape | null;
   tracks: Song[];
-  track: Song;
+  track: Song | null;
   trackIndex: number;
+  cassetteState: CassetteState;
   playing: boolean;
   currentTime: number;
   duration: number;
   error: string;
   liked: boolean;
-  onBack: () => void;
-  onTogglePlayback: () => void;
+  reducedMotion: boolean;
+  onOpenLibrary: () => void;
+  onPlay: () => void;
+  onStop: () => void;
+  onEject: () => void;
+  onMotionComplete: (phase: CassetteMotionPhase, cassetteId: string) => void;
   onSelectTrack: (index: number) => void;
   onSeek: (value: number) => void;
   onToggleLike: () => void;
 };
 
-export function PlayerScreen({ mix, tracks, track, trackIndex, playing, currentTime, duration, error, liked, onBack, onTogglePlayback, onSelectTrack, onSeek, onToggleLike }: Props) {
+export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, playing, currentTime, duration, error, liked, reducedMotion, onOpenLibrary, onPlay, onStop, onEject, onMotionComplete, onSelectTrack, onSeek, onToggleLike }: Props) {
   const progress = duration > 0 ? Math.min(1, currentTime / duration) : 0;
-  const canSeek = duration > 0;
+  const ready = cassetteState === 'ready';
+  const busy = cassetteState === 'loading' || cassetteState === 'inserting' || cassetteState === 'ejecting';
+  const status = cassetteState === 'loading' || cassetteState === 'inserting' ? 'LOADING TAPE' : cassetteState === 'ejecting' ? 'EJECTING' : playing ? 'NOW PLAYING' : ready ? 'READY TO PLAY' : 'NO TAPE';
+  const motionPhase = cassetteState === 'inserting' || cassetteState === 'ejecting' ? cassetteState : 'ready';
 
-  return <section className="screen player-screen" aria-label={`${mix.title} player`}>
-    <header className="player-header">
-      <button className="player-back" type="button" onClick={onBack} aria-label="Back to mixtapes">
-        <Icon name="back" size={20} />
+  return <section className="deck-surface flex h-full flex-col" aria-label="Casetera Loveline">
+    <header className="deck-header grid items-center">
+      <button className="icon-button" onClick={onOpenLibrary} aria-label="Abrir colección de casetes" disabled={busy}>
+        <Icon name="list" size={23} />
       </button>
-      <span className="player-mix-title">{mix.title}</span>
-      <button className={`player-favorite ${liked ? 'is-liked' : ''}`} type="button" onClick={onToggleLike} aria-label={liked ? 'Remove favorite' : 'Favorite song'} aria-pressed={liked}>
-        <Icon name="heart" size={20} />
+      <div className="deck-brand text-center"><h1>LOVELINE</h1><p>CASSETTE PLAYER</p></div>
+      <button className={`icon-button header-heart ${liked ? 'is-liked' : ''}`} onClick={onToggleLike} disabled={!track || busy} aria-label={liked ? 'Quitar canción de favoritos' : 'Guardar canción en favoritos'} aria-pressed={liked}>
+        <Icon name="heart" size={23} />
       </button>
     </header>
 
-    <div className="player-cassette-area">
-      <PhysicalCassette mix={mix} running={playing} progress={progress} resetKey={`${mix.id}:${track.id}`} />
+    <div className="deck-bay-area">
+      <div className="deck-bay">
+        <img className="deck-background" src={`${import.meta.env.BASE_URL}assets/background.png`} alt="Mecanismo de la casetera" draggable={false} />
+        <div className="deck-cassette-stage" style={{ perspective: CASSETTE_PERSPECTIVE }}>
+          {mix && <motion.div key={mix.id} className="cassette-insertion"
+            initial={reducedMotion ? false : CASSETTE_INITIAL_POSE}
+            animate={motionPhase}
+            variants={reducedMotion ? CASSETTE_REDUCED_MOTION_VARIANTS : CASSETTE_MOTION_VARIANTS}
+            onAnimationComplete={definition => {
+              if (definition === 'inserting' || definition === 'ejecting') onMotionComplete(definition, mix.id);
+            }}>
+            <PhysicalCassette mix={mix} running={playing && ready} progress={progress} resetKey={`${mix.id}:${track?.id}`} />
+          </motion.div>}
+        </div>
+        <div className="deck-bay-shine" aria-hidden="true" />
+      </div>
     </div>
 
-    <div className="player-track-info">
-      <h1>{track.title}</h1>
-      <span>{formatTime(currentTime)}</span>
-    </div>
-    <div className="player-timeline">
-      <input
-        type="range"
-        min={0}
-        max={Math.max(1, duration)}
-        step={0.1}
-        value={Math.min(currentTime, Math.max(1, duration))}
-        disabled={!canSeek}
-        onChange={event => onSeek(Number(event.target.value))}
-        style={{ '--percent': `${progress * 100}%` } as React.CSSProperties}
-        aria-label="Seek playback"
-      />
-      <span>{formatTime(duration)}</span>
-    </div>
-    {error && <p className="player-error" role="alert">{error}</p>}
-
-    <div className="player-controls" aria-label="Playback controls">
-      <button type="button" onClick={() => onSelectTrack((trackIndex - 1 + tracks.length) % tracks.length)} aria-label="Previous song">
-        <Icon name="prev" size={20} />
-      </button>
-      <button className="player-play" type="button" onClick={onTogglePlayback} aria-label={playing ? 'Pause' : 'Play'}>
-        <Icon name={playing ? 'pause' : 'play'} size={20} />
-      </button>
-      <button type="button" onClick={() => onSelectTrack((trackIndex + 1) % tracks.length)} aria-label="Next song">
-        <Icon name="next" size={20} />
-      </button>
+    <div className="deck-console">
+      <div className="transport-status flex items-center justify-between">
+        <div className="flex items-center gap-2.5"><span className={`status-led ${playing ? 'is-playing' : ''} ${busy ? 'is-busy' : ''}`} aria-hidden="true" /><span className="status-label" role="status">{status}</span></div>
+        <output className={`digital-clock ${playing ? 'is-on' : ''}`} aria-label={`Tiempo de reproducción: ${formatTime(currentTime)}`}>{formatTime(currentTime)}</output>
+      </div>
+      <div className="timeline-row">
+        <input className="deck-timeline" type="range" min={0} max={Math.max(1, duration)} step={.1}
+          value={Math.min(currentTime, Math.max(1, duration))} disabled={!ready || duration <= 0}
+          onChange={event => onSeek(Number(event.target.value))}
+          style={{ '--percent': `${progress * 100}%` } as CSSProperties} aria-label="Posición de la canción" />
+      </div>
+      <div className="track-metadata flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2>{track?.title ?? 'Elige un casete'}</h2>
+          <p>{track?.artist ?? 'Tu próxima canción empieza aquí.'}</p>
+        </div>
+        {tracks.length > 1 && <div className="track-navigation flex items-center gap-1">
+          <button className="icon-button" onClick={() => onSelectTrack((trackIndex - 1 + tracks.length) % tracks.length)} disabled={!ready} aria-label="Canción anterior"><Icon name="prev" size={18} /></button>
+          <span>{trackIndex + 1}/{tracks.length}</span>
+          <button className="icon-button" onClick={() => onSelectTrack((trackIndex + 1) % tracks.length)} disabled={!ready} aria-label="Siguiente canción"><Icon name="next" size={18} /></button>
+        </div>}
+        {track && tracks.length === 1 && <span className="side-indicator" aria-label="Lado A">A</span>}
+      </div>
+      {error && <p className="player-error" role="alert">{error}</p>}
+      <div className="transport-keys grid grid-cols-4" role="group" aria-label="Controles de la casetera">
+        <button className="transport-key key-insert" onClick={onOpenLibrary} disabled={busy} aria-label="Insertar casete: abrir colección"><span className="key-face"><Icon name="cassette" size={21} /><span>INSERT TAPE</span></span></button>
+        <button className={`transport-key key-play ${playing ? 'is-latched' : ''}`} onClick={onPlay} disabled={!ready} aria-label="Reproducir" aria-pressed={playing}><span className="key-face"><Icon name="play" size={21} /><span>PLAY</span></span></button>
+        <button className="transport-key" onClick={onStop} disabled={!ready} aria-label="Detener reproducción"><span className="key-face"><Icon name="square" size={20} /><span>STOP</span></span></button>
+        <button className="transport-key key-eject" onClick={onEject} disabled={!ready} aria-label="Expulsar casete"><span className="key-face"><Icon name="eject" size={21} /><span>EJECT</span></span></button>
+      </div>
     </div>
   </section>;
 }

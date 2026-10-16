@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1076 610">
+  <title>Road Trips — cassette label</title>
+  <defs>
+    <clipPath id="label-clip">
+      <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" clip-rule="evenodd" />
+    </clipPath>
+    <linearGradient id="label-gradient" x1="0" y1="0" x2=".8" y2="1">
+      <stop stop-color="#33264d" />
+      <stop offset="1" stop-color="#141627" />
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#label-clip)">
+    <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" fill="#ff8738" fill-rule="evenodd" />
+    <path d="M638-30H1100V261L838 425L638 221Z" fill="#175cba" />
+    <circle cx="906" cy="102" r="90" fill="#f7d598" />
+    <path d="M680 610L794 500L904 514L1076 361V610Z" fill="#175cba" />
+    <path d="M778 610L874 530L935 542L1090 405" fill="none" stroke="#f4d19c" stroke-width="5" />
+    <path d="M11 501C152 447 245 519 361 555S583 579 657 490" fill="none" stroke="#f9d59d" stroke-width="16" />
+    <path d="M44 561L101 527L88 556L137 546L81 585L94 556Z" fill="#1653a5" />
+    <text x="397" y="159" text-anchor="middle" fill="#173f74" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-size="84" letter-spacing="-4" lengthAdjust="spacingAndGlyphs">ROAD TRIPS</text>
+    <path d="M74 211H677M74 226H529" stroke="#173f74" stroke-width="7" />
+  </g>
+</svg>

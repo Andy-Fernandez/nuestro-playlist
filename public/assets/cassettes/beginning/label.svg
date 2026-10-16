@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1076 610">
+  <title>Our Beginning — cassette label</title>
+  <defs>
+    <clipPath id="label-clip">
+      <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" clip-rule="evenodd" />
+    </clipPath>
+    <linearGradient id="label-gradient" x1="0" y1="0" x2=".8" y2="1">
+      <stop stop-color="#33264d" />
+      <stop offset="1" stop-color="#141627" />
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#label-clip)">
+    <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" fill="url(#label-gradient)" fill-rule="evenodd" />
+    <circle cx="930" cy="108" r="62" fill="#f6c7bf" />
+    <circle cx="954" cy="90" r="59" fill="#2a2343" />
+    <g fill="#f7d6ce">
+      <circle cx="85" cy="107" r="4" />
+      <path d="M75 107H95M85 97V117" stroke="#f7d6ce" stroke-width="1.5" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="180" cy="206" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="310" cy="77" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="429" cy="231" r="4" />
+      <path d="M419 231H439M429 221V241" stroke="#f7d6ce" stroke-width="1.5" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="570" cy="49" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="702" cy="226" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="857" cy="93" r="4" />
+      <path d="M847 93H867M857 83V103" stroke="#f7d6ce" stroke-width="1.5" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="982" cy="198" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="112" cy="494" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="269" cy="555" r="4" />
+      <path d="M259 555H279M269 545V565" stroke="#f7d6ce" stroke-width="1.5" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="493" cy="504" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="706" cy="564" r="2" />
+    </g>
+    <g fill="#f7d6ce">
+      <circle cx="970" cy="512" r="4" />
+      <path d="M960 512H980M970 502V522" stroke="#f7d6ce" stroke-width="1.5" />
+    </g>
+    <path d="M0 540L140 425L246 510L365 410L491 565L638 457L804 554L925 412L1076 505V610H0Z" fill="#101727" />
+    <path d="M47 542L209 508L343 553L435 517M724 242L807 193L860 232L942 180" fill="none" stroke="#9a86ba" stroke-width="2" opacity=".6" />
+    <text x="538" y="167" text-anchor="middle" fill="#f9e1cf" font-family="Georgia, serif" font-size="72" letter-spacing="8">Our Beginning</text>
+    <path d="M113 454V583M87 483L113 451L139 483M78 515L113 475L148 515M69 548L113 506L157 548" fill="#191829" stroke="#11131e" stroke-width="8" />
+  </g>
+</svg>

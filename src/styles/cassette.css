@@ -1,0 +1,88 @@
+.cassette-portrait {
+  position: relative;
+  width: 100%;
+  height: auto;
+  /* Compact cassette face: 100.4 × 63.8 mm, turned vertically. */
+  aspect-ratio: 63.8 / 100.4;
+  filter: drop-shadow(0 8px 10px #0008);
+  isolation: isolate;
+}
+
+.deck-tape {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 157.36677%;
+  aspect-ratio: 100.4 / 63.8;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center;
+}
+
+.cassette-layer-stack {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1210 / 878;
+  /* Adapt the original art as one assembly; its layer anchors stay aligned. */
+  transform: translateY(-50%) scaleY(.87574531);
+  transform-origin: center;
+}
+
+.deck-cassette-layer {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.deck-cassette-label { z-index: 1; top: 7.3%; left: 5.5%; width: 89%; height: auto; }
+.deck-cassette-spool {
+  position: absolute;
+  top: 51.8%;
+  aspect-ratio: 1;
+  /* Counter the art correction so independently rotating reels stay circular. */
+  transform: translate(-50%, -50%) scaleY(1.14188403);
+  pointer-events: none;
+}
+
+.deck-cassette-spool.left { left: 28.9%; }
+.deck-cassette-spool.right { left: 71.4%; }
+.deck-cassette-spool--wind { z-index: 0; width: 21%; }
+.deck-cassette-wind {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: center;
+  transition: transform .18s linear;
+}
+
+.deck-cassette-shell { z-index: 2; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.deck-cassette-guide-roller {
+  z-index: 3;
+  top: 88.4%;
+  width: 9.1%;
+  height: auto;
+  transform: translate(-50%, -50%) scaleY(1.14188403);
+  border-radius: 50%;
+  object-fit: contain;
+}
+.deck-cassette-guide-roller.left { left: 10.5%; }
+.deck-cassette-guide-roller.right { left: 90%; }
+
+.deck-cassette-spool--reel { z-index: 3; width: 14.2%; }
+.deck-cassette-reel {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.deck-cassette-glass { z-index: 4; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-cassette-wind { transition: none; }
+}

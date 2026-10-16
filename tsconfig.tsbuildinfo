@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/components/icon.tsx","./src/components/library.tsx","./src/components/physicalcassette.tsx","./src/components/playerscreen.tsx","./src/data/mixtapes.ts","./src/hooks/useaudioengine.ts","./src/hooks/usereducedmotion.ts","./src/utils/deck.ts","./vite.config.ts"],"version":"5.8.3"}

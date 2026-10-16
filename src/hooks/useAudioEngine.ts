@@ -1,23 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export function useAudioEngine(src: string) {
+export function useAudioEngine(src: string | null) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playRequest = useRef(0);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [endedCount, setEndedCount] = useState(0);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
     audio.preload = 'metadata';
     audioRef.current = audio;
     const onTime = () => setCurrentTime(audio.currentTime);
     const onMeta = () => setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
-    const onPlay = () => setPlaying(true);
+    const onPlay = () => { setPlaying(true); setError(''); };
     const onPause = () => setPlaying(false);
-    const onEnd = () => { setPlaying(false); setEndedCount(n => n + 1); };
-    const onError = () => setError('Could not play this audio file.');
+    const onEnd = () => setPlaying(false);
+    const onError = () => { if (audio.hasAttribute('src')) setError('Could not play this audio file.'); };
     audio.addEventListener('timeupdate', onTime);
     audio.addEventListener('loadedmetadata', onMeta);
     audio.addEventListener('durationchange', onMeta);
@@ -26,6 +27,7 @@ export function useAudioEngine(src: string) {
     audio.addEventListener('ended', onEnd);
     audio.addEventListener('error', onError);
     return () => {
+      playRequest.current += 1;
       audio.pause(); audio.removeAttribute('src'); audio.load(); audioRef.current = null;
       audio.removeEventListener('timeupdate', onTime);
       audio.removeEventListener('loadedmetadata', onMeta);
@@ -40,7 +42,12 @@ export function useAudioEngine(src: string) {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.pause(); audio.volume = 1; audio.src = src; audio.load();
+    playRequest.current += 1;
+    audio.pause();
+    audio.volume = 1;
+    if (src) audio.src = src;
+    else audio.removeAttribute('src');
+    audio.load();
     setPlaying(false); setCurrentTime(0); setDuration(0); setError('');
   }, [src]);
 
@@ -51,14 +58,17 @@ export function useAudioEngine(src: string) {
       setError('Audio player is not ready yet.');
       return;
     }
+    const request = ++playRequest.current;
+    setError('');
     if (audio.ended) audio.currentTime = 0;
     try {
       await audio.play();
-    } catch {
+    } catch (failure) {
+      if (request !== playRequest.current || (failure instanceof DOMException && failure.name === 'AbortError')) return;
       setError('Playback was blocked or this audio file could not be opened.');
     }
   }, []);
-  const pause = useCallback(() => audioRef.current?.pause(), []);
+  const pause = useCallback(() => { playRequest.current += 1; audioRef.current?.pause(); }, []);
   const seek = useCallback((time: number) => {
     const audio = audioRef.current;
     if (!audio || !Number.isFinite(time)) return;
@@ -66,11 +76,12 @@ export function useAudioEngine(src: string) {
     setCurrentTime(audio.currentTime);
   }, []);
   const rewind = useCallback(() => {
+    playRequest.current += 1;
     const audio = audioRef.current;
     if (!audio) return;
     audio.pause(); audio.currentTime = 0;
     setCurrentTime(0);
   }, []);
 
-  return { audioRef, playing, currentTime, duration, endedCount, error, play, pause, seek, rewind };
+  return { playing, currentTime, duration, error, play, pause, seek, rewind };
 }

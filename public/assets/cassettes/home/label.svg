@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1076 610">
+  <title>You Feel Like Home — cassette label</title>
+  <defs>
+    <clipPath id="label-clip">
+      <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" clip-rule="evenodd" />
+    </clipPath>
+    <linearGradient id="label-gradient" x1="0" y1="0" x2=".8" y2="1">
+      <stop stop-color="#33264d" />
+      <stop offset="1" stop-color="#141627" />
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#label-clip)">
+    <path d="M98 0H978L1027 53H1061Q1076 53 1076 69V540Q1076 554 1062 565L1018 610H58L14 565Q0 554 0 540V69Q0 53 15 53H49ZM286 285A96 96 0 0 0 190 381V385A96 96 0 0 0 286 481H790A96 96 0 0 0 886 385V381A96 96 0 0 0 790 285Z" fill="#f3a68e" fill-rule="evenodd" />
+    <path d="M0 0H1076V610H0Z" fill="#f7b5a4" opacity=".45" />
+    <path d="M54 32H1022V578H54Z" fill="none" stroke="#a95155" stroke-width="2" />
+    <g transform="translate(115 176) scale(1.1)">
+      <path d="M0 110C-10 60 23 20 2-42M-2 68C-48 39-51 13-53 3M7 33C35 13 47-4 47-23" fill="none" stroke="#656249" stroke-width="5" />
+      <path d="M-4 70C-60 78-69 35-58 26C-26 21-11 38-4 70M6 32C39 52 67 26 62 10C35-4 17 9 6 32" fill="#6f7953" />
+      <g fill="#cb6570">
+        <ellipse cx="0" cy="-45" rx="25" ry="39" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(72 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(144 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(216 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(288 0 -19)" />
+      </g>
+      <circle cx="0" cy="-19" r="16" fill="#edbb79" />
+      <circle cx="-53" cy="3" r="16" fill="#cb6570" />
+      <circle cx="47" cy="-23" r="14" fill="#cb6570" />
+    </g>
+    <g transform="translate(970 508) scale(1.35)">
+      <path d="M0 110C-10 60 23 20 2-42M-2 68C-48 39-51 13-53 3M7 33C35 13 47-4 47-23" fill="none" stroke="#656249" stroke-width="5" />
+      <path d="M-4 70C-60 78-69 35-58 26C-26 21-11 38-4 70M6 32C39 52 67 26 62 10C35-4 17 9 6 32" fill="#6f7953" />
+      <g fill="#bd5864">
+        <ellipse cx="0" cy="-45" rx="25" ry="39" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(72 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(144 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(216 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(288 0 -19)" />
+      </g>
+      <circle cx="0" cy="-19" r="16" fill="#edbb79" />
+      <circle cx="-53" cy="3" r="16" fill="#bd5864" />
+      <circle cx="47" cy="-23" r="14" fill="#bd5864" />
+    </g>
+    <g transform="translate(80 561) scale(0.75)">
+      <path d="M0 110C-10 60 23 20 2-42M-2 68C-48 39-51 13-53 3M7 33C35 13 47-4 47-23" fill="none" stroke="#656249" stroke-width="5" />
+      <path d="M-4 70C-60 78-69 35-58 26C-26 21-11 38-4 70M6 32C39 52 67 26 62 10C35-4 17 9 6 32" fill="#6f7953" />
+      <g fill="#e4847d">
+        <ellipse cx="0" cy="-45" rx="25" ry="39" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(72 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(144 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(216 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(288 0 -19)" />
+      </g>
+      <circle cx="0" cy="-19" r="16" fill="#edbb79" />
+      <circle cx="-53" cy="3" r="16" fill="#e4847d" />
+      <circle cx="47" cy="-23" r="14" fill="#e4847d" />
+    </g>
+    <g transform="translate(1028 108) scale(0.65)">
+      <path d="M0 110C-10 60 23 20 2-42M-2 68C-48 39-51 13-53 3M7 33C35 13 47-4 47-23" fill="none" stroke="#656249" stroke-width="5" />
+      <path d="M-4 70C-60 78-69 35-58 26C-26 21-11 38-4 70M6 32C39 52 67 26 62 10C35-4 17 9 6 32" fill="#6f7953" />
+      <g fill="#d2757b">
+        <ellipse cx="0" cy="-45" rx="25" ry="39" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(72 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(144 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(216 0 -19)" />
+        <ellipse cx="0" cy="-45" rx="25" ry="39" transform="rotate(288 0 -19)" />
+      </g>
+      <circle cx="0" cy="-19" r="16" fill="#edbb79" />
+      <circle cx="-53" cy="3" r="16" fill="#d2757b" />
+      <circle cx="47" cy="-23" r="14" fill="#d2757b" />
+    </g>
+    <text x="550" y="184" text-anchor="middle" fill="#713942" font-family="'Snell Roundhand', 'Segoe Script', cursive" font-style="italic" font-size="85" textLength="810" lengthAdjust="spacingAndGlyphs">You Feel Like Home</text>
+    <path d="M499 546C481 519 452 544 473 565L499 589L525 565C546 544 517 519 499 546Z" fill="none" stroke="#8c4650" stroke-width="4" />
+  </g>
+</svg>

@@ -1,43 +1,38 @@
-import type { Mixtape } from '../data/mixtapes';
+import { resolveAsset, type Mixtape } from '../data/mixtapes';
 import { Icon } from './Icon';
 
 type Props = {
   mixtapes: Mixtape[];
-  favoritesOnly: boolean;
-  onToggleFavorites: () => void;
+  selectedId?: string | null;
   onSelect: (id: string) => void;
+  onClose?: () => void;
 };
 
-export function Library({ mixtapes, favoritesOnly, onToggleFavorites, onSelect }: Props) {
-  return <section className="screen library-screen" aria-label="Mixtapes">
-    <header className="library-header">
-      <span className="library-header-spacer" aria-hidden="true" />
-      <h1>MIXTAPES</h1>
-      <button
-        type="button"
-        className={`library-favorites ${favoritesOnly ? 'active' : ''}`}
-        onClick={onToggleFavorites}
-        aria-label={favoritesOnly ? 'Show all mixtapes' : 'Show favorites'}
-        aria-pressed={favoritesOnly}
-      >
-        <Icon name="heart" size={20} />
-      </button>
+export function Library({ mixtapes, selectedId, onSelect, onClose }: Props) {
+  return <section className="collection-library flex min-h-0 flex-col" aria-label="Colección de casetes">
+    <header className="collection-header flex items-center justify-between">
+      <h2>MIXTAPES</h2>
+      {onClose && <button type="button" className="collection-close" onClick={onClose} aria-label="Cerrar colección">
+        <Icon name="close" size={21} />
+      </button>}
     </header>
-    <div className="mixtape-list">
-      {mixtapes.map((mix, index) => <button
+    <div className="collection-shelf flex min-h-0 flex-col">
+      {mixtapes.map((mix) => <button
         type="button"
-        className={`mixtape-card mixtape-card--${mix.kind}`}
+        className="cassette-spine"
         key={mix.id}
         onClick={() => onSelect(mix.id)}
-        aria-label={`Open ${mix.title}`}
+        aria-label={`Insertar casete ${mix.title}`}
+        aria-pressed={selectedId === mix.id}
       >
-        <span className="mixtape-card-edge" aria-hidden="true" />
-        <span className="mixtape-card-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-        <span className="mixtape-card-title">{mix.title}</span>
-        <span className="mixtape-card-heart" aria-hidden="true">♡</span>
-        <span className="mixtape-card-gloss" aria-hidden="true" />
+        <span className="cassette-spine__print">
+          <img className="cassette-spine__art" src={resolveAsset(mix.artwork.spine)} width="400" height="80" alt="" draggable={false} />
+        </span>
+        <span className="cassette-spine__cap cassette-spine__cap--left" aria-hidden="true" />
+        <span className="cassette-spine__cap cassette-spine__cap--right" aria-hidden="true" />
+        <span className="cassette-spine__plastic" aria-hidden="true" />
       </button>)}
-      {mixtapes.length === 0 && <p className="mixtape-empty">No favorite mixtapes yet.</p>}
+      {mixtapes.length === 0 && <p className="collection-empty">Tu colección empieza aquí.</p>}
     </div>
   </section>;
 }
