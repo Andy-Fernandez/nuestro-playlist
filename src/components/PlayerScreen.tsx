@@ -32,7 +32,7 @@ export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, pl
   const progress = duration > 0 ? Math.min(1, currentTime / duration) : 0;
   const ready = cassetteState === 'ready';
   const busy = cassetteState === 'loading' || cassetteState === 'inserting' || cassetteState === 'ejecting';
-  const status = cassetteState === 'loading' || cassetteState === 'inserting' ? 'LOADING TAPE' : cassetteState === 'ejecting' ? 'EJECTING' : playing ? 'NOW PLAYING' : ready ? 'READY TO PLAY' : 'NO TAPE';
+  const status = cassetteState === 'loading' ? 'LOADING TAPE' : cassetteState === 'inserting' ? 'INSERTING TAPE' : cassetteState === 'ejecting' ? 'EJECTING' : playing ? 'NOW PLAYING' : ready ? 'READY TO PLAY' : 'NO TAPE';
   const motionPhase = cassetteState === 'inserting' || cassetteState === 'ejecting' ? cassetteState : 'ready';
 
   return <section className="deck-surface flex h-full flex-col" aria-label="Casetera Loveline">

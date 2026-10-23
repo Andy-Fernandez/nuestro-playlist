@@ -3,7 +3,7 @@
  * The waveforms are cached before interaction; playback needs only a source/gain
  * pair per contact, with no downloads, decoding, or compressor look-ahead delay.
  */
-import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION } from '../config/cassetteMotion';
+import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_MOTION_CUES } from '../config/cassetteMotion';
 
 export type MechanicalSound = 'press' | 'play' | 'insert' | 'eject' | 'stop';
 type ButtonSound = 'press' | 'play' | 'stop';
@@ -109,7 +109,12 @@ function buttonBuffer(context: AudioContext, kind: ButtonSound, take: number): A
 }
 
 function frictionBuffer(context: AudioContext, spring: boolean): AudioBuffer {
-  const data = new Float32Array(Math.ceil(context.sampleRate * .45));
+  // Generate enough texture at its natural pitch for the designed travel time.
+  // Longer motion should not turn a short spring or slide into slowed-down audio.
+  const duration = spring
+    ? CASSETTE_EJECT_DURATION * CASSETTE_MOTION_CUES.ejectRelease
+    : CASSETTE_INSERT_DURATION * CASSETTE_MOTION_CUES.insertSeat;
+  const data = new Float32Array(Math.ceil(context.sampleRate * duration));
   const random = randomSource(spring ? 1207 : 8129);
   let low = 0;
   let slow = 0;
@@ -233,14 +238,13 @@ function scheduleSound(system: MechanicalAudio, kind: MechanicalSound, motionDur
     return;
   }
   if (kind === 'insert') {
-    contact(system, system.slide, at, .9, system.slide.duration / (duration * .82), duration * .82, true);
-    [.07, .24, .46, .67].forEach((position, index) => clip(system.tick, position, .26 + index * .08, 1.12 - index * .07));
-    clip(system.buttons.play[take], .78, .9, .96);
+    contact(system, system.slide, at, .72, variation, duration * CASSETTE_MOTION_CUES.insertSeat, true);
+    [.12, .32, CASSETTE_MOTION_CUES.insertAlign, .76].forEach((position, index) => clip(system.tick, position, .22 + index * .07, 1.12 - index * .07));
+    clip(system.buttons.play[take], CASSETTE_MOTION_CUES.insertSeat, .9, .96);
   } else {
     clip(system.buttons.stop[take], 0, .95);
-    contact(system, system.spring, at + duration * .08, .95, system.spring.duration / (duration * .67), duration * .67, true);
-    [.18, .33, .52, .7].forEach((position, index) => clip(system.tick, position, .54 - index * .1, 1.05 - index * .08));
-    clip(system.tick, .83, .65, .84);
+    contact(system, system.spring, at + duration * .02, .8, variation, duration * CASSETTE_MOTION_CUES.ejectRelease, true);
+    [.1, CASSETTE_MOTION_CUES.ejectRelease, .44, CASSETTE_MOTION_CUES.ejectLift].forEach((position, index) => clip(system.tick, position, .46 - index * .09, 1.05 - index * .08));
   }
 }
 

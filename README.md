@@ -15,6 +15,12 @@ npm run lint
 
 En escritorio, la colección queda junto a la casetera. En móvil, el menú o **INSERT TAPE** abre la colección.
 
+## Experiencia y movimiento
+
+Loveline prioriza disfrutar una colección pequeña de canciones con el ritual de una casetera física. La tecla responde al momento; el casete se acerca, se alinea y se asienta con un movimiento continuo de **1,4 s**. La expulsión libera el mecanismo y retira el casete en **1,55 s**, sin pausas artificiales. Los sonidos acompañan los puntos de contacto y la música espera a **PLAY**.
+
+Las imágenes se preparan de antemano para que la carga no marque ese ritmo. Con movimiento reducido, cada transición dura **0,08 s**. Las instrucciones para asistentes de IA están en [AGENTS.md](AGENTS.md); las trayectorias, duraciones y puntos de contacto compartidos con el audio están en `src/config/cassetteMotion.ts`.
+
 ## Uso
 
 1. La casetera comienza vacía. Elegir un casete lo introduce; la música espera a **PLAY**.
