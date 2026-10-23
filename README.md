@@ -36,9 +36,15 @@ npm run build
 npm run preview
 ```
 
-Abre la dirección local y mantén la primera visita conectada hasta que el service worker termine de instalarse: guarda la aplicación, las imágenes y los tres MP3, unos **17 MiB** en total. Después puedes abrir y reproducir la colección sin conexión. El modo de desarrollo no registra el service worker.
+Abre la dirección local y mantén la primera visita conectada hasta que el service worker termine de instalarse: guarda la aplicación, las imágenes y los cinco MP3, unos **41 MiB** en total. Después puedes abrir y reproducir la colección sin conexión. El modo de desarrollo no registra el service worker.
 
 La instalación requiere HTTPS o localhost. Usa la opción **Instalar** del navegador; en Safari de iPhone, **Compartir → Añadir a pantalla de inicio**. Las actualizaciones esperan a que cierres todas las ventanas de Loveline y no recargan una reproducción en curso.
+
+## Publicar en GitHub Pages
+
+En el repositorio `Andy-Fernandez/nuestro-playlist`, abre **Settings → Pages** y selecciona **GitHub Actions** como Source. El workflow `.github/workflows/deploy.yml` instala las dependencias, compila la aplicación y publica `dist/` con cada push a `main`. También se puede ejecutar desde **Actions → Deploy to GitHub Pages → Run workflow**.
+
+La dirección publicada es https://andy-fernandez.github.io/nuestro-playlist/. `vite.config.ts` configura `base: '/nuestro-playlist/'` para que scripts, imágenes, audio y service worker se carguen desde esa carpeta. Si cambia el nombre del repositorio, actualiza esa ruta.
 
 ## Personalización y archivos
 

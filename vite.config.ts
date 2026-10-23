@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/nuestro-playlist/',
   plugins: [
     react(),
     tailwindcss(),
@@ -34,7 +35,7 @@ export default defineConfig({
       injectManifest: {
         // Full local media is downloaded at installation, including every cassette layer.
         globPatterns: ['**/*.{js,css,html,svg,png,mp3,webmanifest}'],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },
       devOptions: { enabled: false },
     }),
