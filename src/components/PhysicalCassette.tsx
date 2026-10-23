@@ -46,7 +46,7 @@ export function PhysicalCassette({ mix, running, progress, resetKey }: Props) {
   return <div className="cassette-portrait">
     <div className="deck-tape" role="img" aria-label={`${mix.title}: casete ${running ? 'en reproducción' : 'detenido'}`}>
       <div className="cassette-layer-stack">
-        <img className="deck-cassette-layer deck-cassette-label" src={resolveAsset(mix.artwork.label)} alt="" draggable={false} />
+        <img className={`deck-cassette-layer deck-cassette-label${mix.id === 'nubes' ? ' deck-cassette-label--nubes' : ''}`} src={resolveAsset(mix.artwork.label)} alt="" draggable={false} />
         <div className="deck-cassette-spool deck-cassette-spool--wind left">
           <img className="deck-cassette-layer deck-cassette-wind" src={sharedAsset('tape-wind.png')} alt="" draggable={false} ref={windLeft} />
         </div>

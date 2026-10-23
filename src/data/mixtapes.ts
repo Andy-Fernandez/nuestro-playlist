@@ -19,21 +19,27 @@ export type Mixtape = {
   };
 };
 export const SONGS: Song[] = [
-  { id: 's1', title: 'Tu sonrisa', artist: 'Loveline · Original demo', src: 'audio/demo-1.mp3' },
+  { id: 'bby-wow', title: 'BbY WOW', artist: 'KAROL G', src: 'audio/BbY WOW.mp3' },
+  { id: 's1', title: 'NUBES', artist: 'De La Rose & Omar Courtz', src: 'audio/NUBES.mp3' },
   { id: 's2', title: 'Nuestra primera página', artist: 'Loveline · Original demo', src: 'audio/demo-2.mp3' },
   { id: 's3', title: 'A medianoche', artist: 'Loveline · Original demo', src: 'audio/demo-3.mp3' }
 ];
 export const MIXTAPES: Mixtape[] = [
   {
-    id: 'for-you', title: 'For You', songIds: ['s1'],
+    id: 'nubes', title: 'Nubes', songIds: ['s1'],
     artwork: {
-      spine: 'assets/cassettes/for-you/spine.svg',
-      label: 'assets/cassettes/for-you/label.svg'
+      spine: 'assets/cassettes/nubes/spine-nubes-v2.png',
+      label: 'assets/cassettes/nubes/label.png'
     },
     hardware: {
-      reel: 'assets/cassettes/for-you/reel.svg',
-      guideRoller: 'assets/cassettes/for-you/guide-roller.svg'
+      reel: 'assets/cassettes/nubes/reel.svg',
+      guideRoller: 'assets/cassettes/nubes/guide-roller.svg'
     }
+  },
+  {
+    id: 'bby-wow', title: 'BbY WOW — KAROL G', songIds: ['bby-wow'],
+    artwork: { spine: 'assets/cassettes/bby-wow/spine.png', label: 'assets/cassettes/bby-wow/label.png' },
+    hardware: { reel: 'assets/cassettes/bby-wow/reel.svg', guideRoller: 'assets/cassettes/bby-wow/guide-roller.svg' }
   },
   {
     id: 'beginning', title: 'Our Beginning', songIds: ['s2'],

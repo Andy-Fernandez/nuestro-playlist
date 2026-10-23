@@ -37,6 +37,14 @@
 }
 
 .deck-cassette-label { z-index: 1; top: 7.3%; left: 5.5%; width: 89%; height: auto; }
+/* The 1742 × 903 PNG has its 1076 × 612 label at (284, 33).
+   Align that visible artwork with the standard label area, excluding padding. */
+.deck-cassette-label--nubes {
+  top: 3.54%;
+  left: -17.99%;
+  width: 144.09%;
+  max-width: none;
+}
 .deck-cassette-spool {
   position: absolute;
   top: 51.8%;
@@ -85,4 +93,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .deck-cassette-wind { transition: none; }
+}
+
+/* Fit the generated label's visible bounds to the cassette print area. */
+.deck-cassette-label[src$="bby-wow/label.png"] {
+  left: 4.74%; top: .17%; width: 90.52%; height: 83.4%;
 }
