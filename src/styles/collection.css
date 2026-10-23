@@ -72,7 +72,7 @@
   box-shadow: 2px 9px 12px #0009, 0 1px 0 #000, inset 0 1px 1px #fff9, inset 1px 0 1px #fffa, inset -1px 0 1px #fff5, inset 0 -2px 2px #000;
 }
 
-.cassette-spine:active { transform: translateY(2px) scale(.991); }
+.cassette-spine:active { transition-duration: 60ms; transform: translateY(2px) scale(.991); }
 .cassette-spine:focus-visible { outline: 2px solid #f1b7a0; outline-offset: 3px; }
 .cassette-spine[aria-pressed="true"] { border-color: #eeb7a0; box-shadow: 0 0 0 1px #eeb7a040, 0 6px 9px #0008, inset 0 1px 1px #fff9, inset 1px 0 1px #fffa, inset -1px 0 1px #fff5, inset 0 -2px 2px #000; }
 
@@ -164,7 +164,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cassette-spine, .collection-close { transition: none; }
-  .cassette-spine:hover, .cassette-spine:active { transform: none; }
+  .cassette-spine:hover, .cassette-spine:active { transition-duration: 60ms; transform: none; }
 }
 
 .cassette-spine__art[src$="bby-wow/spine.png"] { object-fit: cover; object-position: center; }

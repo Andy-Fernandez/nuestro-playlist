@@ -1,181 +1,263 @@
 /**
- * Local mechanical foley, synthesized with Web Audio; no downloads or dependencies.
- * Call playMechanicalSound directly inside a pointer/keyboard/click handler so
- * the browser can unlock its lazily created AudioContext. Nothing is autoplayed.
- * Filtered noise, short body resonances, and irregular ratchet contacts give the
- * controls a physical sound without electronic beeps. Sources clean themselves up.
+ * Original, local foley: damped plastic impacts, a spring latch, and guide friction.
+ * The waveforms are cached before interaction; playback needs only a source/gain
+ * pair per contact, with no downloads, decoding, or compressor look-ahead delay.
  */
 import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION } from '../config/cassetteMotion';
 
-export type MechanicalSound = 'press' | 'insert' | 'eject' | 'stop';
-
+export type MechanicalSound = 'press' | 'play' | 'insert' | 'eject' | 'stop';
+type ButtonSound = 'press' | 'play' | 'stop';
+type Voice = { source: AudioBufferSourceNode; gain: GainNode };
 type MechanicalAudio = {
   context: AudioContext;
   output: GainNode;
-  noise: AudioBuffer;
-  body: AudioBuffer;
+  buttons: Record<ButtonSound, AudioBuffer[]>;
+  tick: AudioBuffer;
+  slide: AudioBuffer;
+  spring: AudioBuffer;
+  voices: Set<Voice>;
+  motionVoices: Set<Voice>;
 };
-
-type AudioWindow = Window & {
-  webkitAudioContext?: typeof AudioContext;
-};
+type AudioWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
 let audio: MechanicalAudio | undefined;
-const QUIET = 0.0001;
+
+/** Seeded noise gives each cached take different contact detail. */
+function randomSource(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 0x100000000 * 2 - 1;
+  };
+}
+
+function addImpact(
+  data: Float32Array,
+  sampleRate: number,
+  offset: number,
+  strength: number,
+  hardness: number,
+  seed: number,
+): void {
+  const random = randomSource(seed);
+  const start = Math.round(offset * sampleRate);
+  const length = Math.min(data.length - start, Math.ceil(sampleRate * .09));
+  // Broad, quickly damped modes prevent the hollow electronic "beep" of a sine.
+  const modes = [
+    [185, .012, .34], [530, .009, .22], [1370, .006, .15], [2810, .003, .07],
+  ].map(([frequency, decay, level]) => {
+    const angle = 2 * Math.PI * frequency * (0.9 + hardness * .18) / sampleRate;
+    const damping = Math.exp(-1 / (sampleRate * decay));
+    return { previous: 0, current: Math.sin(angle) * level, a: 2 * damping * Math.cos(angle), b: damping * damping };
+  });
+  let low = 0;
+  let previousNoise = 0;
+  let snap = 1;
+  let body = 1;
+  const snapDecay = Math.exp(-1 / (sampleRate * .0015));
+  const bodyDecay = Math.exp(-1 / (sampleRate * .012));
+  for (let index = 0; index < length; index += 1) {
+    const noise = random();
+    low += .13 * (noise - low);
+    const edge = noise - previousNoise;
+    previousNoise = noise;
+    let resonance = 0;
+    for (const mode of modes) {
+      resonance += mode.current;
+      const next = mode.a * mode.current - mode.b * mode.previous;
+      mode.previous = mode.current;
+      mode.current = next;
+    }
+    const attack = Math.min(1, index / (sampleRate * .00025));
+    data[start + index] += strength * attack * (
+      edge * snap * (.15 + hardness * .18) + low * body * .95 + resonance
+    );
+    snap *= snapDecay;
+    body *= bodyDecay;
+  }
+}
+
+function finishBuffer(context: AudioContext, data: Float32Array): AudioBuffer {
+  let peak = 0;
+  for (const sample of data) peak = Math.max(peak, Math.abs(sample));
+  // Retain the relative weight of small contacts; only attenuate excessive peaks.
+  const scale = peak > .85 ? .85 / peak : 1;
+  const buffer = context.createBuffer(1, data.length, context.sampleRate);
+  const channel = buffer.getChannelData(0);
+  for (let index = 0; index < data.length; index += 1) channel[index] = data[index] * scale;
+  return buffer;
+}
+
+function buttonBuffer(context: AudioContext, kind: ButtonSound, take: number): AudioBuffer {
+  const data = new Float32Array(Math.ceil(context.sampleRate * .14));
+  const seed = 101 + take * 7919;
+  const shift = take * .0015;
+  if (kind === 'press') {
+    addImpact(data, context.sampleRate, 0, .32, .4, seed);
+    addImpact(data, context.sampleRate, .006 + shift, .83, .95, seed + 1);
+    addImpact(data, context.sampleRate, .022 + shift, .18, .7, seed + 2);
+  } else if (kind === 'play') {
+    addImpact(data, context.sampleRate, 0, .48, .5, seed + 3);
+    addImpact(data, context.sampleRate, .011 + shift, 1.05, .72, seed + 4);
+    addImpact(data, context.sampleRate, .033 + shift, .26, .9, seed + 5);
+  } else {
+    addImpact(data, context.sampleRate, 0, .94, .65, seed + 6);
+    addImpact(data, context.sampleRate, .024 + shift, .58, .85, seed + 7);
+    addImpact(data, context.sampleRate, .047 + shift, .15, .5, seed + 8);
+  }
+  return finishBuffer(context, data);
+}
+
+function frictionBuffer(context: AudioContext, spring: boolean): AudioBuffer {
+  const data = new Float32Array(Math.ceil(context.sampleRate * .45));
+  const random = randomSource(spring ? 1207 : 8129);
+  let low = 0;
+  let slow = 0;
+  let grain = 0;
+  for (let index = 0; index < data.length; index += 1) {
+    const progress = index / data.length;
+    const noise = random();
+    low += (spring ? .33 - progress * .19 : .17) * (noise - low);
+    slow += .035 * (noise - slow);
+    // Irregular grain sounds like guides and a relaxing spring, not white hiss.
+    if (index % Math.round(context.sampleRate * .0037) === 0) grain = .4 + Math.abs(random()) * .6;
+    const fade = Math.min(1, progress * 40, (1 - progress) * 15);
+    const envelope = spring ? Math.pow(1 - progress, 1.8) : Math.sin(Math.PI * progress) ** .65;
+    data[index] = (low - slow) * grain * envelope * fade * (spring ? .9 : .6);
+  }
+  return finishBuffer(context, data);
+}
 
 function createAudio(): MechanicalAudio | undefined {
   if (typeof window === 'undefined') return undefined;
   if (audio && audio.context.state !== 'closed') return audio;
-
   const AudioConstructor = window.AudioContext ?? (window as AudioWindow).webkitAudioContext;
   if (!AudioConstructor) return undefined;
 
-  const context = new AudioConstructor();
+  const context = new AudioConstructor({ latencyHint: 'interactive' });
   const output = context.createGain();
-  const limiter = context.createDynamicsCompressor();
-  output.gain.value = 0.3;
-  limiter.threshold.value = -13;
-  limiter.knee.value = 10;
-  limiter.ratio.value = 8;
-  limiter.attack.value = 0.001;
-  limiter.release.value = 0.08;
-  output.connect(limiter);
-  limiter.connect(context.destination);
-
-  const noise = context.createBuffer(1, Math.ceil(context.sampleRate * 1.1), context.sampleRate);
-  const noiseData = noise.getChannelData(0);
-  for (let index = 0; index < noiseData.length; index += 1) {
-    noiseData[index] = Math.random() * 2 - 1;
-  }
-
-  // A damped plastic/metal impact: its partials die before becoming a pitched tone.
-  const body = context.createBuffer(1, Math.ceil(context.sampleRate * 0.16), context.sampleRate);
-  const bodyData = body.getChannelData(0);
-  for (let index = 0; index < bodyData.length; index += 1) {
-    const time = index / context.sampleRate;
-    const contact = Math.min(1, time / 0.0006);
-    bodyData[index] = contact * (
-      Math.sin(time * Math.PI * 2 * 148) * Math.exp(-time * 66) * 0.62
-      + Math.sin(time * Math.PI * 2 * 437) * Math.exp(-time * 105) * 0.24
-      + Math.sin(time * Math.PI * 2 * 1130) * Math.exp(-time * 190) * 0.1
-      + (Math.random() * 2 - 1) * Math.exp(-time * 150) * 0.12
-    );
-  }
-
-  audio = { context, output, noise, body };
+  output.gain.value = .46;
+  output.connect(context.destination);
+  const tickData = new Float32Array(Math.ceil(context.sampleRate * .06));
+  addImpact(tickData, context.sampleRate, 0, .45, .9, 709);
+  audio = {
+    context,
+    output,
+    buttons: {
+      press: [0, 1, 2].map(take => buttonBuffer(context, 'press', take)),
+      play: [0, 1, 2].map(take => buttonBuffer(context, 'play', take)),
+      stop: [0, 1, 2].map(take => buttonBuffer(context, 'stop', take)),
+    },
+    tick: finishBuffer(context, tickData),
+    slide: frictionBuffer(context, false),
+    spring: frictionBuffer(context, true),
+    voices: new Set(),
+    motionVoices: new Set(),
+  };
   return audio;
 }
 
-function noiseContact(
-  system: MechanicalAudio,
-  at: number,
-  duration: number,
-  strength: number,
-  frequency: number,
-  type: BiquadFilterType = 'bandpass',
-  endFrequency = frequency,
-): void {
-  const { context, noise, output } = system;
-  const source = context.createBufferSource();
-  const filter = context.createBiquadFilter();
-  const envelope = context.createGain();
-  source.buffer = noise;
-  filter.type = type;
-  filter.Q.value = 0.65;
-  filter.frequency.setValueAtTime(frequency, at);
-  filter.frequency.exponentialRampToValueAtTime(Math.max(30, endFrequency), at + duration);
-  envelope.gain.setValueAtTime(QUIET, at);
-  envelope.gain.linearRampToValueAtTime(strength, at + Math.min(0.002, duration * 0.1));
-  envelope.gain.exponentialRampToValueAtTime(QUIET, at + duration);
-  source.connect(filter);
-  filter.connect(envelope);
-  envelope.connect(output);
-  source.onended = () => {
-    source.disconnect();
-    filter.disconnect();
-    envelope.disconnect();
-  };
-  source.start(at, Math.random() * Math.max(0, noise.duration - duration - 0.01));
-  source.stop(at + duration + 0.005);
-}
-
-function bodyContact(system: MechanicalAudio, at: number, strength: number, pitch = 1): void {
-  const { context, body, output } = system;
-  const source = context.createBufferSource();
-  const envelope = context.createGain();
-  source.buffer = body;
-  source.playbackRate.value = pitch;
-  envelope.gain.value = strength;
-  source.connect(envelope);
-  envelope.connect(output);
-  source.onended = () => {
-    source.disconnect();
-    envelope.disconnect();
-  };
-  source.start(at);
-}
-
-function latch(system: MechanicalAudio, at: number, strength: number, pitch = 1): void {
-  noiseContact(system, at, 0.012, strength * 0.74, 3600 * pitch, 'highpass');
-  bodyContact(system, at + 0.002, strength * 0.8, pitch);
-  noiseContact(system, at + 0.017, 0.024, strength * 0.31, 1700 * pitch);
-}
-
-function scheduleSound(system: MechanicalAudio, kind: MechanicalSound): void {
-  const at = system.context.currentTime + 0.004;
-  const variation = 0.96 + Math.random() * 0.08;
-
-  switch (kind) {
-    case 'press':
-      noiseContact(system, at, 0.018, 0.27, 1150, 'lowpass');
-      latch(system, at + 0.009, 0.62, variation);
-      break;
-    case 'stop':
-      latch(system, at, 0.68, variation * 0.82);
-      latch(system, at + 0.041, 0.23, variation * 1.16);
-      break;
-    case 'insert':
-      // The tape slides over its guides, makes irregular tooth contacts, then seats.
-      noiseContact(system, at, CASSETTE_INSERT_DURATION * .77, 0.24, 1450, 'bandpass', 650);
-      for (let tooth = 0; tooth < 7; tooth += 1) {
-        const offset = CASSETTE_INSERT_DURATION * (.08 + tooth * .11) + (tooth % 2) * .008;
-        noiseContact(system, at + offset, 0.016, 0.16 + tooth * 0.014, 2400 - tooth * 120);
-      }
-      bodyContact(system, at + CASSETTE_INSERT_DURATION * .82, 0.48, 0.75);
-      latch(system, at + CASSETTE_INSERT_DURATION * .93, 0.72, 0.92);
-      latch(system, at + CASSETTE_INSERT_DURATION * .97, 0.18, 1.25);
-      break;
-    case 'eject':
-      // A latch releases first; the spring and guide contacts tail off as it opens.
-      latch(system, at, 0.68, variation * 0.91);
-      noiseContact(system, at + 0.026, 0.38, 0.25, 3100, 'bandpass', 850);
-      for (let tooth = 0; tooth < 6; tooth += 1) {
-        const offset = 0.055 + tooth * 0.026 + tooth * tooth * 0.003;
-        noiseContact(system, at + offset, 0.018, 0.24 - tooth * 0.025, 2900 - tooth * 220);
-      }
-      bodyContact(system, at + 0.4, 0.34, 0.8);
-      noiseContact(system, at + 0.405, 0.074, 0.15, 1100, 'lowpass');
-      noiseContact(system, at + CASSETTE_EJECT_DURATION * .65, .28, .09, 1700, 'bandpass', 650);
-      break;
+/** Warm the cache on hover/focus; only pass true from a pointer/key gesture. */
+export function prepareMechanicalAudio(unlock = false): void {
+  try {
+    const system = createAudio();
+    if (unlock && system && system.context.state !== 'running') {
+      void system.context.resume().catch(() => undefined);
+    }
+  } catch {
+    // Audio availability must never hold up a control or navigation.
   }
 }
 
-export function playMechanicalSound(kind: MechanicalSound): void {
+function contact(
+  system: MechanicalAudio,
+  buffer: AudioBuffer,
+  at: number,
+  strength: number,
+  rate = 1,
+  duration = buffer.duration / rate,
+  motion = false,
+): void {
+  if (duration <= 0) return;
+  const source = system.context.createBufferSource();
+  const gain = system.context.createGain();
+  source.buffer = buffer;
+  source.playbackRate.value = rate;
+  const end = at + Math.min(duration, buffer.duration / rate);
+  gain.gain.setValueAtTime(strength, at);
+  gain.gain.setValueAtTime(strength, Math.max(at, end - .006));
+  gain.gain.linearRampToValueAtTime(0, end);
+  source.connect(gain);
+  gain.connect(system.output);
+  const voice = { source, gain };
+  system.voices.add(voice);
+  if (motion) system.motionVoices.add(voice);
+  source.onended = () => {
+    source.disconnect();
+    gain.disconnect();
+    system.voices.delete(voice);
+    system.motionVoices.delete(voice);
+  };
+  // Bound repeated clicks without a compressor's look-ahead latency.
+  if (system.voices.size > 18) {
+    const oldest = system.voices.values().next().value;
+    if (oldest) oldest.source.stop();
+  }
+  source.start(at);
+  source.stop(end);
+}
+
+function scheduleSound(system: MechanicalAudio, kind: MechanicalSound, motionDuration?: number): void {
+  const at = system.context.currentTime;
+  const variation = .975 + Math.random() * .05;
+  const take = Math.floor(Math.random() * 3);
+  if (kind === 'press' || kind === 'play' || kind === 'stop') {
+    contact(system, system.buttons[kind][take], at, .94 + Math.random() * .06, variation);
+    return;
+  }
+
+  for (const { source, gain } of system.motionVoices) {
+    gain.gain.cancelScheduledValues(at);
+    gain.gain.setTargetAtTime(0, at, .002);
+    source.stop(at + .008);
+  }
+  system.motionVoices.clear();
+  const fallback = kind === 'insert' ? CASSETTE_INSERT_DURATION : CASSETTE_EJECT_DURATION;
+  const duration = Number.isFinite(motionDuration) ? Math.max(.02, motionDuration!) : fallback;
+  const clip = (buffer: AudioBuffer, position: number, strength: number, rate = variation) => {
+    contact(system, buffer, at + duration * position, strength, rate, duration * (1 - position), true);
+  };
+  // A reduced-motion transition needs one small contact, without a trailing slide.
+  if (duration <= .12) {
+    clip(system.buttons[kind === 'insert' ? 'play' : 'stop'][take], 0, .7);
+    return;
+  }
+  if (kind === 'insert') {
+    contact(system, system.slide, at, .9, system.slide.duration / (duration * .82), duration * .82, true);
+    [.07, .24, .46, .67].forEach((position, index) => clip(system.tick, position, .26 + index * .08, 1.12 - index * .07));
+    clip(system.buttons.play[take], .78, .9, .96);
+  } else {
+    clip(system.buttons.stop[take], 0, .95);
+    contact(system, system.spring, at + duration * .08, .95, system.spring.duration / (duration * .67), duration * .67, true);
+    [.18, .33, .52, .7].forEach((position, index) => clip(system.tick, position, .54 - index * .1, 1.05 - index * .08));
+    clip(system.tick, .83, .65, .84);
+  }
+}
+
+/** Call directly in the gesture; a suspended context never delays the UI. */
+export function playMechanicalSound(kind: MechanicalSound, motionDuration?: number): void {
   try {
     const system = createAudio();
     if (!system) return;
-
     if (system.context.state === 'running') {
-      scheduleSound(system, kind);
+      scheduleSound(system, kind, motionDuration);
       return;
     }
-
     const requestedAt = performance.now();
-    // Invoke resume synchronously in the user's gesture; never await it in the UI.
     void system.context.resume().then(() => {
-      // Discard a blocked/old request instead of making an unrelated gesture sound.
-      if (system.context.state === 'running' && performance.now() - requestedAt < 500) {
-        scheduleSound(system, kind);
+      // Do not play a stale click after a blocked resume or a backgrounded tab.
+      if (system.context.state === 'running' && performance.now() - requestedAt < 150) {
+        scheduleSound(system, kind, motionDuration);
       }
     }).catch(() => undefined);
   } catch {

@@ -23,7 +23,7 @@
 html, body, #root { margin: 0; width: 100%; min-height: 100%; }
 body { min-width: 320px; }
 button, input { font: inherit; }
-button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button { touch-action: manipulation; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 button:disabled { cursor: default; }
 button:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 5px; }
 input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 6px; }
@@ -95,7 +95,7 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
 .deck-bay { position: relative; height: min(100cqh, 124.955cqw); width: auto; aspect-ratio: 1122 / 1402; flex-shrink: 0; transform: scale(1.085); }
 .deck-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; pointer-events: none; filter: drop-shadow(0 5px 4px #0009); }
 .deck-cassette-stage { position: absolute; z-index: 2; inset: 0; overflow: visible; perspective-origin: 50% 60%; transform-style: preserve-3d; pointer-events: none; }
-.cassette-insertion { position: absolute; width: 70.7%; top: 5.2%; left: 13.38%; transform-origin: 50% 72%; filter: drop-shadow(0 5px 4px #000b); will-change: transform; }
+.cassette-insertion { position: absolute; width: 70.7%; top: 5.2%; left: 13.38%; transform-origin: 50% 72%; will-change: transform; }
 .deck-bay-shine { position: absolute; inset: 6.6% 8.3% 6.5%; border-radius: 2%; pointer-events: none; background: linear-gradient(117deg, #ffffff0b 1%, transparent 32%, #ffffff04 68%, transparent); }
 .deck-console { flex: 0 0 auto; padding: 5px 6px 0; }
 .transport-status { min-height: 32px; margin-bottom: 4px; }
@@ -121,7 +121,7 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
 .track-navigation .icon-button { width: 24px; height: 30px; flex-basis: 24px; }
 .transport-keys { gap: 4px; padding: 10px 0 5px; }
 .transport-key { position: relative; height: 62px; padding: 2px 2px 6px; border: 1px solid #080b0e; border-radius: 6px; background: linear-gradient(#626b75, #0b0e12 80%); box-shadow: 0 2px 0 #05070a, 0 3px 3px #000b; color: var(--text-primary); }
-.key-face { position: relative; display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid #a3adb34d; border-radius: 4px; box-shadow: inset 0 1px 2px #ffffff26, inset 0 -2px 3px #0007, 0 2px 1px #000b; transform: translateY(-1px); transition: transform 95ms ease-out, box-shadow 95ms ease-out, filter 95ms; background: linear-gradient(120deg, #535c67, #343d47); }
+.key-face { position: relative; display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid #a3adb34d; border-radius: 4px; box-shadow: inset 0 1px 2px #ffffff26, inset 0 -2px 3px #0007, 0 2px 1px #000b; transform: translateY(-1px); transition: transform 60ms ease-out, box-shadow 60ms ease-out, filter 60ms; background: linear-gradient(120deg, #535c67, #343d47); }
 .key-face::after { position: absolute; inset: 2px; border-radius: 3px; content: ""; background: url('/assets/grain.png'); opacity: .12; pointer-events: none; }
 .key-face > span { position: relative; z-index: 1; font-size: 7px; font-weight: 800; letter-spacing: .13em; white-space: nowrap; }
 .key-face > svg { position: relative; z-index: 1; width: 17px; height: 17px; }
@@ -171,10 +171,10 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
   .key-face > span { font-size: 8px; }
   .key-insert .key-face > span { font-size: 7px; }
   .transport-keys { gap: 5px; padding-top: 13px; }
-  .collection-panel { position: fixed; z-index: 20; top: 12px; bottom: 12px; left: 12px; width: min(380px, calc(100% - 24px)); height: auto; max-height: calc(100dvh - 24px); transform: translateX(calc(-100% - 24px)); transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility .35s; visibility: hidden; border-radius: 23px; box-shadow: 12px 0 50px #0007; }
+  .collection-panel { position: fixed; z-index: 20; top: 12px; bottom: 12px; left: 12px; width: min(380px, calc(100% - 24px)); height: auto; max-height: calc(100dvh - 24px); transform: translateX(calc(-100% - 24px)); transition: transform .2s cubic-bezier(.2,.8,.2,1), visibility .2s; visibility: hidden; border-radius: 23px; box-shadow: 12px 0 50px #0007; }
   .collection-panel.is-open { transform: translateX(0); visibility: visible; }
   .collection-panel .collection-close { display: grid; }
-  .collection-scrim { position: fixed; z-index: 19; inset: 0; display: block; border: 0; background: #05080cc7; opacity: 0; visibility: hidden; transition: opacity .3s, visibility .3s; backdrop-filter: blur(5px); }
+  .collection-scrim { position: fixed; z-index: 19; inset: 0; display: block; border: 0; background: #05080cc7; opacity: 0; visibility: hidden; transition: opacity .18s, visibility .18s; }
   .collection-scrim.is-open { opacity: 1; visibility: visible; }
 }
 @media (max-width: 760px) and (max-height: 700px) {

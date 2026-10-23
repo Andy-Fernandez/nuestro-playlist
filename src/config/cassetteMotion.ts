@@ -4,8 +4,9 @@ export type CassetteState = 'empty' | 'loading' | 'inserting' | 'ready' | 'eject
 export type CassetteMotionPhase = Extract<CassetteState, 'inserting' | 'ejecting'>;
 
 export const CASSETTE_PERSPECTIVE = 1000;
-export const CASSETTE_INSERT_DURATION = 1.18;
-export const CASSETTE_EJECT_DURATION = 1.45;
+export const CASSETTE_INSERT_DURATION = .46;
+export const CASSETTE_EJECT_DURATION = .5;
+export const CASSETTE_REDUCED_DURATION = .08;
 
 const seated = {
   opacity: 1,
@@ -47,15 +48,15 @@ export const CASSETTE_MOTION_VARIANTS = {
   ejecting: {
     ...seated,
     x: ['0%', '0%', '0%', '5%'],
-    y: ['0%', '-5%', '-5%', '-145%'],
-    z: [0, 90, 90, 180],
-    rotateX: [0, 11, 11, 17],
-    rotateY: [0, -2, -2, -5],
-    rotateZ: [0, 2, 2, 5],
+    y: ['0%', '-5%', '-35%', '-145%'],
+    z: [0, 70, 110, 180],
+    rotateX: [0, 9, 13, 17],
+    rotateY: [0, -2, -3, -5],
+    rotateZ: [0, 2, 3, 5],
     transition: {
       duration: CASSETTE_EJECT_DURATION,
-      // Release, hold visibly above the mechanism, then remove the cassette.
-      times: [0, .25, .62, 1],
+      // Release and lift continuously, without a pause that feels like input lag.
+      times: [0, .24, .48, 1],
       ease: [.22, .61, .36, 1],
     },
   },
@@ -63,7 +64,7 @@ export const CASSETTE_MOTION_VARIANTS = {
 
 /** Minimal travel still completes through the same animation callback. */
 export const CASSETTE_REDUCED_MOTION_VARIANTS = {
-  inserting: { ...seated, y: ['-.2%', '0%'], transition: { duration: .08 } },
+  inserting: { ...seated, y: ['-.2%', '0%'], transition: { duration: CASSETTE_REDUCED_DURATION } },
   ready: { ...seated, transition: { duration: 0 } },
-  ejecting: { ...seated, y: ['0%', '-1%'], transition: { duration: .08 } },
+  ejecting: { ...seated, y: ['0%', '-1%'], transition: { duration: CASSETTE_REDUCED_DURATION } },
 } satisfies Variants;

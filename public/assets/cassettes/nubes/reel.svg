@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="171" height="173" viewBox="0 0 171 173">
-  <title>for-you main reel</title>
+  <title>nubes main reel</title>
   <defs><filter id="color" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
     <feColorMatrix type="saturate" values="0" result="metal"/>
     <feFlood flood-color="#f3d8bf" result="tint"/>

@@ -48,7 +48,26 @@ Después de editarlos, ejecuta:
 node scripts/build-cassette-hardware.mjs
 ```
 
-El script reconstruye los seis pares de SVG usando los originales en `design/hardware/reel.png` y `design/hardware/guide-roller.png`. Cada SVG incorpora la imagen y aplica un tinte con `feFlood`, conservando textura y transparencia, sin depender de imágenes externas. Si sustituyes estos SVG manualmente, conserva el centro de giro y la proporción de su lienzo; el generador sobrescribe ambos archivos.
+El script reconstruye los pares de SVG de cada carpeta con `hardware.json`. Usa `design/hardware/reel.png` y la versión reducida `design/hardware/guide-roller.display.png`; el original del rodillo se conserva en `design/hardware/guide-roller.png`. Cada SVG incorpora la imagen y aplica un tinte con `feFlood`, conservando textura y transparencia, sin depender de imágenes externas. Si sustituyes estos SVG manualmente, conserva el centro de giro y la proporción de su lienzo; el generador sobrescribe ambos archivos.
+
+El rodillo se muestra a menos de 40 píxeles CSS. Su versión de pantalla mide 190 × 192 píxeles para mantener detalle en pantallas de alta densidad sin descargar y decodificar el original de 969 × 977 en cada casete. El SVG conserva su lienzo de 969 × 977 y ajusta la imagen a ese espacio, evitando que el redondeo del tamaño reducido cambie la proporción o el centro de giro.
+
+Si reemplazas el original del rodillo, regenera la versión reducida con Python 3 y Pillow antes de ejecutar el generador de SVG:
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+from PIL import Image
+
+source = Path('design/hardware/guide-roller.png')
+with Image.open(source) as image:
+    image.thumbnail((192, 192), Image.Resampling.LANCZOS)
+    image.save(source.with_name('guide-roller.display.png'), optimize=True)
+PY
+node scripts/build-cassette-hardware.mjs
+```
+
+Incluye tanto la versión reducida como los SVG generados al guardar los cambios. Reconstruir los tintes normalmente solo requiere Node.js y utiliza la imagen reducida guardada en el repositorio.
 
 ## Capas compartidas y proporción
 

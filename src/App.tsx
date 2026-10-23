@@ -5,7 +5,7 @@ import { PlayerScreen } from './components/PlayerScreen';
 import { useCassetteTransport, type CassetteMotionPhase } from './hooks/useCassetteTransport';
 import { useAudioEngine } from './hooks/useAudioEngine';
 import { useReducedMotion } from './hooks/useReducedMotion';
-import { playMechanicalSound } from './utils/mechanicalAudio';
+import { playMechanicalSound, prepareMechanicalAudio } from './utils/mechanicalAudio';
 
 function getLikes(): Record<string, boolean> {
   try {
@@ -17,7 +17,8 @@ function getLikes(): Record<string, boolean> {
 }
 
 export default function App() {
-  const transport = useCassetteTransport();
+  const reducedMotion = useReducedMotion();
+  const transport = useCassetteTransport(reducedMotion);
   const { selectedId, state: cassetteState, busy } = transport;
   const [trackIndexes, setTrackIndexes] = useState<Record<string, number>>({});
   const trackIndex = selectedId ? trackIndexes[selectedId] ?? 0 : 0;
@@ -25,7 +26,6 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const [likes, setLikes] = useState<Record<string, boolean>>(getLikes);
   const libraryRef = useRef<HTMLElement>(null);
-  const reducedMotion = useReducedMotion();
   const mix = MIXTAPES.find(item => item.id === selectedId) ?? null;
   const tracks = useMemo(() => mix ? findSongs(mix) : [], [mix]);
   const track = tracks[Math.min(trackIndex, tracks.length - 1)] ?? null;
@@ -91,7 +91,7 @@ export default function App() {
   };
   const play = () => {
     if (cassetteState !== 'ready' || !track) return;
-    playMechanicalSound('press');
+    playMechanicalSound('play');
     void audio.play();
   };
   const stop = () => {
@@ -113,7 +113,13 @@ export default function App() {
     if (track) setLikes(previous => ({ ...previous, [track.id]: !previous[track.id] }));
   };
 
-  return <div className="site min-h-dvh w-full">
+  return <div className="site min-h-dvh w-full"
+    onPointerOverCapture={() => prepareMechanicalAudio()}
+    onFocusCapture={() => prepareMechanicalAudio()}
+    onPointerDownCapture={() => prepareMechanicalAudio(true)}
+    onKeyDownCapture={event => {
+      if (event.key === 'Enter' || event.key === ' ') prepareMechanicalAudio(true);
+    }}>
     <main className="workspace flex items-center justify-center" aria-label="Loveline cassette player">
       <button className={`collection-scrim ${libraryOpen ? 'is-open' : ''}`} onClick={() => setLibraryOpen(false)} aria-label="Cerrar colección" tabIndex={-1} />
       <aside ref={libraryRef} className={`collection-panel ${libraryOpen ? 'is-open' : ''}`} role={isMobile && libraryOpen ? 'dialog' : 'complementary'} aria-modal={isMobile && libraryOpen ? true : undefined} inert={busy || (isMobile && !libraryOpen)} aria-label="Colección de casetes" aria-busy={busy}
@@ -122,7 +128,7 @@ export default function App() {
             event.currentTarget.querySelector<HTMLButtonElement>('button[aria-pressed]')?.focus({ preventScroll: true });
           }
         }}>
-        <Library mixtapes={MIXTAPES} selectedId={selectedId} onSelect={selectMix} onClose={() => setLibraryOpen(false)} />
+        <Library mixtapes={MIXTAPES} selectedId={selectedId} onSelect={selectMix} onPrepare={transport.prepareSelection} onClose={() => setLibraryOpen(false)} />
       </aside>
       <div className="deck-device" inert={isMobile && libraryOpen}>
         <PlayerScreen mix={mix} tracks={tracks} track={track} trackIndex={trackIndex} cassetteState={cassetteState}

@@ -11,7 +11,8 @@ export function useAudioEngine(src: string | null) {
   useEffect(() => {
     const audio = new Audio();
     audio.crossOrigin = 'anonymous';
-    audio.preload = 'metadata';
+    // Start buffering the selected song during insertion, before PLAY is pressed.
+    audio.preload = 'auto';
     audioRef.current = audio;
     const onTime = () => setCurrentTime(audio.currentTime);
     const onMeta = () => setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);

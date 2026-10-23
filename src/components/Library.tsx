@@ -5,10 +5,11 @@ type Props = {
   mixtapes: Mixtape[];
   selectedId?: string | null;
   onSelect: (id: string) => void;
+  onPrepare: (id: string) => void;
   onClose?: () => void;
 };
 
-export function Library({ mixtapes, selectedId, onSelect, onClose }: Props) {
+export function Library({ mixtapes, selectedId, onSelect, onPrepare, onClose }: Props) {
   return <section className="collection-library flex min-h-0 flex-col" aria-label="Colección de casetes">
     <header className="collection-header flex items-center justify-between">
       <h2>MIXTAPES</h2>
@@ -22,6 +23,9 @@ export function Library({ mixtapes, selectedId, onSelect, onClose }: Props) {
         className="cassette-spine"
         key={mix.id}
         onClick={() => onSelect(mix.id)}
+        onPointerEnter={() => onPrepare(mix.id)}
+        onPointerDown={() => onPrepare(mix.id)}
+        onFocus={() => onPrepare(mix.id)}
         aria-label={`Insertar casete ${mix.title}`}
         aria-pressed={selectedId === mix.id}
       >

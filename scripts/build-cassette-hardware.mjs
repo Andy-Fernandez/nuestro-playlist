@@ -2,13 +2,15 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-// Original image texture stays inside each SVG, so offline images have no
-// external dependencies. Edit a cassette's hardware.json and run this script.
+// Image texture stays inside each SVG, so offline images have no external
+// dependencies. The roller uses a display-size derivative; its original stays
+// in design/hardware. See docs/ASSETS.md before replacing the source artwork.
+// Edit a cassette's hardware.json and run this script to update its tint.
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const cassetteRoot = path.join(projectRoot, 'public/assets/cassettes');
 const sources = {
   reel: { file: 'reel.png', width: 171, height: 173 },
-  guideRoller: { file: 'guide-roller.png', width: 969, height: 977 },
+  guideRoller: { file: 'guide-roller.display.png', width: 969, height: 977, resized: true },
 };
 for (const source of Object.values(sources)) {
   source.data = (await readFile(path.join(projectRoot, 'design/hardware', source.file))).toString('base64');
@@ -24,7 +26,7 @@ function renderHardware(source, color, title) {
     <feComposite in="tint" in2="metal" operator="in" result="masked-tint"/>
     <feBlend in="metal" in2="masked-tint" mode="multiply"/>
   </filter></defs>
-  <image width="${source.width}" height="${source.height}" href="data:image/png;base64,${source.data}" filter="url(#color)"/>
+  <image width="${source.width}" height="${source.height}"${source.resized ? ' preserveAspectRatio="none"' : ''} href="data:image/png;base64,${source.data}" filter="url(#color)"/>
 </svg>\n`;
 }
 
