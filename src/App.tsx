@@ -30,6 +30,7 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const [likes, setLikes] = useState<Record<string, boolean>>(getLikes);
   const libraryRef = useRef<HTMLElement>(null);
+  const pointerStartedOnTape = useRef(false);
   const mix = MIXTAPES.find(item => item.id === selectedId) ?? null;
   const tracks = useMemo(() => mix ? findSongs(mix) : [], [mix]);
   const track = tracks[Math.min(trackIndex, tracks.length - 1)] ?? null;
@@ -148,12 +149,18 @@ export default function App() {
   return <div className="site min-h-dvh w-full"
     onPointerOverCapture={() => prepareMechanicalAudio()}
     onFocusCapture={() => prepareMechanicalAudio()}
-    onPointerDownCapture={() => prepareMechanicalAudio(true)}
+    onPointerDownCapture={event => {
+      if (event.isPrimary) pointerStartedOnTape.current = event.target instanceof Element && Boolean(event.target.closest('[data-cassette-object]'));
+      prepareMechanicalAudio(true);
+    }}
     onKeyDownCapture={event => {
       if (event.key === 'Enter' || event.key === ' ') prepareMechanicalAudio(true);
     }}
     onClick={event => {
       if (cassetteState !== 'ejected' || libraryOpen || !(event.target instanceof Element)) return;
+      // Releasing a short drag outside the tape must not become a background
+      // click that removes it. A fresh press outside still removes normally.
+      if (pointerStartedOnTape.current) return;
       // Keep the collection and every control independent of the background
       // gesture. In particular, a reinsertion click must never also remove it.
       if (event.target.closest('button, input, a, .collection-panel, [data-cassette-object]')) return;

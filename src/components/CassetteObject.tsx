@@ -4,7 +4,7 @@ import type { Mixtape } from '../data/mixtapes';
 import {
   CASSETTE_INITIAL_POSE, getCassetteMotionVariants, CASSETTE_REDUCED_MOTION_VARIANTS,
   CASSETTE_THROW_TRANSITION, CASSETTE_RETURN_TRANSITION, CASSETTE_REDUCED_DURATION, getCassetteThrow, getCassetteThrowTarget,
-  cassetteDuration, type MotionSpeed, type CassetteMotionPhase, type CassetteState, type CassetteThrow,
+  CASSETTE_REINSERT_DURATION, cassetteDuration, type MotionSpeed, type CassetteMotionPhase, type CassetteState, type CassetteThrow,
 } from '../config/cassetteMotion';
 import { PhysicalCassette } from './PhysicalCassette';
 
@@ -31,6 +31,16 @@ export function CassetteObject({ mix, state, running, progress, resetKey, reduce
   const ejected = state === 'ejected';
   const phase = state === 'loading' || state === 'empty' ? 'ready' : state;
   const variants = useMemo(() => getCassetteMotionVariants(motionSpeed), [motionSpeed]);
+
+  useEffect(() => {
+    if (state !== 'reinserting') return;
+    // INSERT can also be pressed from the deck or collection while a short
+    // drag is returning. Seat that hand offset along with the outer pose.
+    const transition = { duration: cassetteDuration(CASSETTE_REINSERT_DURATION, reducedMotion, motionSpeed) };
+    const horizontal = animate(x, 0, transition);
+    const vertical = animate(y, 0, transition);
+    return () => { horizontal.stop(); vertical.stop(); };
+  }, [state, reducedMotion, motionSpeed, x, y]);
 
   useEffect(() => {
     if (state !== 'removing' || !throwDirection || reducedMotion) return;
@@ -60,6 +70,7 @@ export function CassetteObject({ mix, state, running, progress, resetKey, reduce
     animate={phase} custom={throwDirection}
     variants={reducedMotion ? CASSETTE_REDUCED_MOTION_VARIANTS : variants}
     onAnimationComplete={definition => {
+      if (definition === 'reinserting') { x.stop(); y.stop(); x.set(0); y.set(0); }
       if (definition === 'inserting' || definition === 'ejecting' || definition === 'reinserting' || definition === 'removing') onMotionComplete(definition, mix.id);
     }}>
     <motion.button type="button" className="cassette-touch" disabled={!ejected}
@@ -69,14 +80,17 @@ export function CassetteObject({ mix, state, running, progress, resetKey, reduce
         if (!event.isPrimary) return;
         suppressClick.current = false; cancelled.current = false; x.stop(); y.stop();
       }}
-      onPointerCancel={() => { cancelled.current = true; suppressClick.current = true; settle(); }}
+      onPointerCancel={event => {
+        if (!event.isPrimary) return;
+        cancelled.current = true; suppressClick.current = true; settle();
+      }}
       onDragStart={() => { suppressClick.current = true; }}
       onDragEnd={release}
       onClick={event => {
         event.stopPropagation();
         if (suppressClick.current && event.detail !== 0) return;
         // Keyboard activation remains available after an abandoned drag.
-        x.stop(); y.stop(); x.set(0); y.set(0); onReinsert();
+        x.stop(); y.stop(); onReinsert();
       }}>
       <PhysicalCassette mix={mix} running={running} progress={progress} resetKey={resetKey} />
     </motion.button>

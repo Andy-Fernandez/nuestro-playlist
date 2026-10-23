@@ -8,7 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test:transport": "node --test scripts/test-cassette-transport.mjs",
+    "test:transport": "node --test scripts/test-cassette-*.mjs",
     "lint": "eslint ."
   },
   "dependencies": {
