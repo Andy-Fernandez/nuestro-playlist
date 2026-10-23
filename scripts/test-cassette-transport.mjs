@@ -296,3 +296,42 @@ test('reduced motion uses the same eject, reinsert, and removal lifecycle', asyn
   harness.value.completeMotion('removing', 'a');
   expectState(harness, 'empty', null);
 });
+
+test('hand jitter and short slow drags do not throw a cassette', () => {
+  const { getCassetteThrow } = motionModule.exports;
+  assert.equal(getCassetteThrow({ x: 3, y: -2 }, { x: 1000, y: 0 }), null);
+  assert.equal(getCassetteThrow({ x: 18, y: -14 }, { x: 20, y: -40 }), null);
+});
+
+test('deliberate drags follow the hand in every direction', () => {
+  const { getCassetteThrow } = motionModule.exports;
+  for (const [x, y] of [[0, -80], [-80, 0], [80, 0], [0, 80], [70, -70]]) {
+    const direction = getCassetteThrow({ x, y }, { x: 0, y: 0 });
+    assert.ok(direction);
+    assert.ok(Math.abs(Math.hypot(direction.x, direction.y) - 1) < .00001);
+    assert.equal(Math.sign(direction.x), Math.sign(x));
+    assert.equal(Math.sign(direction.y), Math.sign(y));
+  }
+});
+
+test('a short flick follows release velocity, including reversing direction', () => {
+  const direction = motionModule.exports.getCassetteThrow({ x: -15, y: 0 }, { x: 700, y: -100 });
+  assert.ok(direction.x > .9);
+  assert.ok(direction.y < 0);
+});
+
+test('throw completion removes once and respects reduced motion sound timing', async () => {
+  for (const reduced of [false, true]) {
+    const harness = createTransport(reduced);
+    await seat(harness);
+    raise(harness);
+    harness.value.remove(true);
+    harness.value.remove(true);
+    expectState(harness, 'removing', 'a');
+    assert.equal(harness.sounds.at(-1)[1], reduced
+      ? motionModule.exports.CASSETTE_REDUCED_DURATION : motionModule.exports.CASSETTE_THROW_DURATION);
+    harness.value.completeMotion('removing', 'a');
+    harness.value.completeMotion('removing', 'a');
+    expectState(harness, 'empty', null);
+  }
+});

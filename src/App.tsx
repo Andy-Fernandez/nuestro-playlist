@@ -89,11 +89,11 @@ export default function App() {
   };
   const { pause: pauseAudio, rewind: rewindAudio } = audio;
   const { remove: removeTape } = transport;
-  const removeCassette = useCallback(() => {
+  const removeCassette = useCallback((throwing = false) => {
     if (cassetteState !== 'ejected') return;
     pauseAudio();
     rewindAudio();
-    removeTape();
+    removeTape(throwing);
   }, [pauseAudio, rewindAudio, cassetteState, removeTape]);
 
   useEffect(() => {

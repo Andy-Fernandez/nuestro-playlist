@@ -1,10 +1,9 @@
 import type { CSSProperties } from 'react';
-import { motion } from 'motion/react';
 import type { Song, Mixtape } from '../data/mixtapes';
 import { formatTime } from '../utils/deck';
-import { PhysicalCassette } from './PhysicalCassette';
+import { CassetteObject } from './CassetteObject';
 import { Icon } from './Icon';
-import { CASSETTE_INITIAL_POSE, CASSETTE_MOTION_VARIANTS, CASSETTE_REDUCED_MOTION_VARIANTS, CASSETTE_PERSPECTIVE, type CassetteState, type CassetteMotionPhase } from '../config/cassetteMotion';
+import { CASSETTE_PERSPECTIVE, type CassetteState, type CassetteMotionPhase } from '../config/cassetteMotion';
 
 type Props = {
   mix: Mixtape | null;
@@ -23,7 +22,7 @@ type Props = {
   onStop: () => void;
   onEject: () => void;
   onReinsert: () => void;
-  onRemove: () => void;
+  onRemove: (throwing?: boolean) => void;
   onMotionComplete: (phase: CassetteMotionPhase, cassetteId: string) => void;
   onSelectTrack: (index: number) => void;
   onSeek: (value: number) => void;
@@ -39,9 +38,8 @@ export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, pl
     : cassetteState === 'inserting' || cassetteState === 'reinserting' ? 'INSERTING TAPE'
       : cassetteState === 'ejecting' ? 'EJECTING' : cassetteState === 'removing' ? 'REMOVING TAPE'
         : ejected ? 'TAPE EJECTED' : playing ? 'NOW PLAYING' : ready ? 'READY TO PLAY' : 'NO TAPE';
-  const motionPhase = cassetteState === 'loading' || cassetteState === 'empty' ? 'ready' : cassetteState;
 
-  return <section className="deck-surface flex h-full flex-col" aria-label="Casetera Loveline">
+  return <section className={`deck-surface flex h-full flex-col${ejected || cassetteState === 'removing' ? ' has-loose-tape' : ''}`} aria-label="Casetera Loveline">
     <header className="deck-header grid items-center">
       <button className="icon-button" onClick={onOpenLibrary} aria-label="Abrir colección de casetes" disabled={busy}>
         <Icon name="list" size={23} />
@@ -56,19 +54,10 @@ export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, pl
       <div className="deck-bay">
         <img className="deck-background" src={`${import.meta.env.BASE_URL}assets/background.png`} alt="Mecanismo de la casetera" draggable={false} />
         <div className="deck-cassette-stage" style={{ perspective: CASSETTE_PERSPECTIVE }}>
-          {mix && <motion.div key={mix.id} className="cassette-insertion" data-cassette-object
-            initial={reducedMotion ? false : CASSETTE_INITIAL_POSE}
-            animate={motionPhase}
-            variants={reducedMotion ? CASSETTE_REDUCED_MOTION_VARIANTS : CASSETTE_MOTION_VARIANTS}
-            onAnimationComplete={definition => {
-              if (definition === 'inserting' || definition === 'ejecting' || definition === 'reinserting' || definition === 'removing') onMotionComplete(definition, mix.id);
-            }}>
-            <button type="button" className="cassette-touch" disabled={!ejected}
-              aria-label={`Insertar de nuevo ${mix.title}`} aria-describedby={ejected ? 'cassette-instructions' : undefined}
-              onClick={event => { event.stopPropagation(); onReinsert(); }}>
-              <PhysicalCassette mix={mix} running={playing && ready} progress={progress} resetKey={`${mix.id}:${track?.id}`} />
-            </button>
-          </motion.div>}
+          {mix && <CassetteObject key={mix.id} mix={mix} state={cassetteState}
+            running={playing && ready} progress={progress} resetKey={`${mix.id}:${track?.id}`}
+            reducedMotion={reducedMotion} onReinsert={onReinsert} onRemove={onRemove}
+            onMotionComplete={onMotionComplete} />}
         </div>
         <div className="deck-bay-shine" aria-hidden="true" />
       </div>
@@ -88,14 +77,14 @@ export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, pl
       <div className="track-metadata flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h2>{track?.title ?? 'Elige un casete'}</h2>
-          <p id={ejected ? 'cassette-instructions' : undefined}>{ejected ? 'Pulsa el casete para insertarlo; fuera para retirarlo.' : track?.artist ?? 'Tu próxima canción empieza aquí.'}</p>
+          <p id={ejected ? 'cassette-instructions' : undefined}>{ejected ? 'Toca para insertar; arrastra para lanzar.' : track?.artist ?? 'Tu próxima canción empieza aquí.'}</p>
         </div>
         {tracks.length > 1 && <div className="track-navigation flex items-center gap-1">
           <button className="icon-button" onClick={() => onSelectTrack((trackIndex - 1 + tracks.length) % tracks.length)} disabled={!ready} aria-label="Canción anterior"><Icon name="prev" size={18} /></button>
           <span>{trackIndex + 1}/{tracks.length}</span>
           <button className="icon-button" onClick={() => onSelectTrack((trackIndex + 1) % tracks.length)} disabled={!ready} aria-label="Siguiente canción"><Icon name="next" size={18} /></button>
         </div>}
-        {ejected && <button type="button" className="cassette-remove" onClick={onRemove} aria-label="Retirar casete">RETIRAR</button>}
+        {ejected && <button type="button" className="cassette-remove" onClick={() => onRemove()} aria-label="Retirar casete">RETIRAR</button>}
         {!ejected && track && tracks.length === 1 && <span className="side-indicator" aria-label="Lado A">A</span>}
       </div>
       {error && <p className="player-error" role="alert">{error}</p>}

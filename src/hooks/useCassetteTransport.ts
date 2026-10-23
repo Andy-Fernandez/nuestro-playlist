@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MIXTAPES, resolveAsset, type Mixtape } from '../data/mixtapes';
-import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_REINSERT_DURATION, CASSETTE_REMOVE_DURATION, CASSETTE_REDUCED_DURATION, type CassetteMotionPhase, type CassetteState } from '../config/cassetteMotion';
+import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_REINSERT_DURATION, CASSETTE_REMOVE_DURATION, CASSETTE_THROW_DURATION, CASSETTE_REDUCED_DURATION, type CassetteMotionPhase, type CassetteState } from '../config/cassetteMotion';
 import { playMechanicalSound } from '../utils/mechanicalAudio';
 
 export type { CassetteMotionPhase, CassetteState } from '../config/cassetteMotion';
@@ -130,13 +130,13 @@ export function useCassetteTransport(reducedMotion = false) {
     playMechanicalSound('reinsert', reinsertDuration);
   }, [commit, reinsertDuration]);
 
-  const remove = useCallback(() => {
+  const remove = useCallback((throwing = false) => {
     if (!mounted.current || current.current.state !== 'ejected' || !current.current.selectedId) return;
     requestToken.current += 1;
     pending.current = null;
     commit({ ...current.current, state: 'removing', error: '' });
-    playMechanicalSound('remove', removeDuration);
-  }, [commit, removeDuration]);
+    playMechanicalSound('remove', throwing && !reducedMotion ? CASSETTE_THROW_DURATION : removeDuration);
+  }, [commit, reducedMotion, removeDuration]);
 
   const select = useCallback((id: string) => {
     if (!mounted.current || isBusy(current.current.state)) return;

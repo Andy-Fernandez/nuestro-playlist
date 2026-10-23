@@ -31,7 +31,7 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
   position: relative;
   display: grid;
   align-items: center;
-  overflow-x: clip;
+  overflow: clip;
   background: radial-gradient(ellipse at 35% 0%, #27303d 0%, transparent 60%), linear-gradient(135deg, #14191f, var(--surface-page));
 }
 .site::before {
@@ -82,6 +82,7 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
   opacity: .095;
   pointer-events: none;
 }
+.deck-surface.has-loose-tape { overflow: visible; }
 .deck-header { grid-template-columns: 36px 1fr 36px; height: 53px; flex: 0 0 53px; padding: 0 8px 7px; }
 .deck-brand h1 { margin: 0 0 4px; font-size: 14px; font-weight: 750; line-height: 1; letter-spacing: .42em; text-indent: .42em; }
 .deck-brand p { margin: 0; color: var(--text-secondary); font-size: 6.5px; font-weight: 600; letter-spacing: .3em; text-indent: .3em; }
@@ -98,7 +99,8 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
 .cassette-insertion { position: absolute; width: 70.7%; top: 5.2%; left: 13.38%; transform-origin: 50% 72%; will-change: transform; }
 .cassette-touch { display: block; width: 100%; padding: 0; border: 0; border-radius: 8px; background: transparent; color: inherit; line-height: 0; pointer-events: auto; }
 .cassette-touch:disabled { pointer-events: none; }
-.cassette-touch:enabled { cursor: pointer; }
+.cassette-touch:enabled { cursor: grab; touch-action: none; user-select: none; }
+.cassette-touch:enabled:active { cursor: grabbing; }
 .cassette-touch:focus-visible { outline-offset: 7px; }
 .cassette-remove { flex: 0 0 auto; min-height: 36px; padding: 0 9px; border: 1px solid #a3adb34d; border-radius: 4px; background: #ffffff06; color: var(--text-primary); font-size: 8px; font-weight: 650; letter-spacing: .08em; }
 .cassette-remove:hover { background: #ffffff12; }

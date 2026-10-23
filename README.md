@@ -30,6 +30,7 @@ Las imágenes se preparan de antemano para que la carga no marque ese ritmo. Con
 4. **EJECT** pausa la música y deja el casete levantado, conservando la posición de la canción.
 5. Presiona el casete levantado o la tecla **INSERT** para volver a asentarlo. La reproducción espera a **PLAY**.
 6. Presiona fuera del casete, **RETIRAR** o **Escape** para sacarlo de la pantalla y reiniciar su posición. Elegir otro casete retira el anterior y después introduce el nuevo.
+7. Con el casete levantado, arrástralo con el dedo o el ratón y suéltalo para lanzarlo en esa dirección. Un movimiento corto vuelve suavemente al mecanismo; un toque sigue insertando el casete. Con movimiento reducido, retirarlo usa un fundido breve.
 
 La barra permite buscar en la canción; el corazón guarda favoritos por canción en el navegador. Cada casete empieza con una canción y admite varias: en ese caso aparecen controles anterior/siguiente. Al terminar una canción, la reproducción se detiene. Se respeta la preferencia de movimiento reducido.
 

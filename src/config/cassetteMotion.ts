@@ -10,7 +10,27 @@ export const CASSETTE_INSERT_DURATION = 1.4;
 export const CASSETTE_EJECT_DURATION = .85;
 export const CASSETTE_REINSERT_DURATION = .9;
 export const CASSETTE_REMOVE_DURATION = 1.1;
+export const CASSETTE_THROW_DURATION = .68;
 export const CASSETTE_REDUCED_DURATION = .08;
+export const CASSETTE_THROW_TRANSITION = { duration: CASSETTE_THROW_DURATION, ease: [.2, .65, .35, 1] as const };
+export const CASSETTE_RETURN_TRANSITION = { type: 'spring' as const, stiffness: 240, damping: 28 };
+
+export type CassetteThrow = { x: number; y: number };
+
+/** Ignore hand jitter; a deliberate drag or short flick chooses its own exit. */
+export function getCassetteThrow(offset: CassetteThrow, velocity: CassetteThrow): CassetteThrow | null {
+  const distance = Math.hypot(offset.x, offset.y);
+  const speed = Math.hypot(velocity.x, velocity.y);
+  if (distance < 42 && !(distance >= 8 && speed >= 480)) return null;
+  const direction = speed >= 480 ? velocity : offset;
+  const length = Math.hypot(direction.x, direction.y);
+  return { x: direction.x / length, y: direction.y / length };
+}
+
+export function getCassetteThrowTarget(release: CassetteThrow, direction: CassetteThrow, viewport: { width: number; height: number }): CassetteThrow {
+  const travel = Math.hypot(viewport.width, viewport.height) + 600;
+  return { x: release.x + direction.x * travel, y: release.y + direction.y * travel };
+}
 
 // Normalized contact points shared by the animation and mechanical foley.
 export const CASSETTE_MOTION_CUES = {
@@ -105,7 +125,11 @@ export const CASSETTE_MOTION_VARIANTS = {
       ease: [[.42, 0, .7, .75], [.25, .25, .65, .95], [.25, .1, .25, 1]],
     },
   },
-  removing: {
+  removing: (throwDirection: CassetteThrow | null) => throwDirection ? {
+    // The inner object carries the release trajectory; keep its raised pose.
+    opacity: [1, 1, 0],
+    transition: { duration: CASSETTE_THROW_DURATION, times: [0, .75, 1], ease: 'linear' },
+  } : {
     // Null first frames inherit the actual pose, including a cassette being
     // replaced directly from the seated position, without a jump to raised.
     opacity: [1, 1, 1, 1, 0],
