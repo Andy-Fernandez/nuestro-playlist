@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MIXTAPES, findSongs, resolveAudio } from './data/mixtapes';
 import { Library } from './components/Library';
 import { PlayerScreen } from './components/PlayerScreen';
@@ -69,6 +69,10 @@ export default function App() {
     if (busy) return;
     setLibraryOpen(false);
     if (id === selectedId && cassetteState === 'ready') return;
+    if (id === selectedId && cassetteState === 'ejected') {
+      transport.reinsert();
+      return;
+    }
     audio.pause();
     audio.rewind();
     setTrackIndexes(previous => ({ ...previous, [id]: 0 }));
@@ -76,15 +80,39 @@ export default function App() {
   };
   const eject = () => {
     if (busy || !mix) return;
+    if (cassetteState === 'ejected') {
+      transport.reinsert();
+      return;
+    }
     audio.pause();
-    audio.rewind();
     transport.eject();
   };
+  const { pause: pauseAudio, rewind: rewindAudio } = audio;
+  const { remove: removeTape } = transport;
+  const removeCassette = useCallback(() => {
+    if (cassetteState !== 'ejected') return;
+    pauseAudio();
+    rewindAudio();
+    removeTape();
+  }, [pauseAudio, rewindAudio, cassetteState, removeTape]);
+
+  useEffect(() => {
+    if (cassetteState !== 'ejected' || libraryOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      removeCassette();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [cassetteState, libraryOpen, removeCassette]);
+
   const completeMotion = (phase: CassetteMotionPhase, id: string) => {
     if (cassetteState !== phase || selectedId !== id) return;
     transport.completeMotion(phase, id);
     requestAnimationFrame(() => {
-      const target = phase === 'inserting' ? '.key-play' : '.key-insert';
+      const target = phase === 'inserting' || phase === 'reinserting' ? '.key-play'
+        : phase === 'ejecting' ? '.cassette-touch' : '.key-insert';
       const button = document.querySelector<HTMLButtonElement>(target);
       if (!button?.disabled) button?.focus({ preventScroll: true });
     });
@@ -119,6 +147,13 @@ export default function App() {
     onPointerDownCapture={() => prepareMechanicalAudio(true)}
     onKeyDownCapture={event => {
       if (event.key === 'Enter' || event.key === ' ') prepareMechanicalAudio(true);
+    }}
+    onClick={event => {
+      if (cassetteState !== 'ejected' || libraryOpen || !(event.target instanceof Element)) return;
+      // Keep the collection and every control independent of the background
+      // gesture. In particular, a reinsertion click must never also remove it.
+      if (event.target.closest('button, input, a, .collection-panel, [data-cassette-object]')) return;
+      removeCassette();
     }}>
     <main className="workspace flex items-center justify-center" aria-label="Loveline cassette player">
       <button className={`collection-scrim ${libraryOpen ? 'is-open' : ''}`} onClick={() => setLibraryOpen(false)} aria-label="Cerrar colección" tabIndex={-1} />
@@ -136,6 +171,7 @@ export default function App() {
           error={transport.error || (audio.error ? 'No se pudo reproducir el audio. Prueba con PLAY otra vez.' : '')}
           liked={track ? Boolean(likes[track.id]) : false} reducedMotion={reducedMotion}
           onOpenLibrary={openLibrary} onPlay={play} onStop={stop} onEject={eject}
+          onReinsert={transport.reinsert} onRemove={removeCassette}
           onMotionComplete={completeMotion}
           onSelectTrack={chooseTrack} onSeek={audio.seek} onToggleLike={toggleLike} />
       </div>

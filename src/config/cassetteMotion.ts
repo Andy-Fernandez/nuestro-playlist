@@ -1,13 +1,15 @@
 import type { TargetAndTransition, Variants } from 'motion/react';
 
-export type CassetteState = 'empty' | 'loading' | 'inserting' | 'ready' | 'ejecting';
-export type CassetteMotionPhase = Extract<CassetteState, 'inserting' | 'ejecting'>;
+export type CassetteState = 'empty' | 'loading' | 'inserting' | 'ready' | 'ejecting' | 'ejected' | 'reinserting' | 'removing';
+export type CassetteMotionPhase = Extract<CassetteState, 'inserting' | 'ejecting' | 'reinserting' | 'removing'>;
 
 export const CASSETTE_PERSPECTIVE = 1000;
 // Deliberate physical travel is part of the listening experience. Keep input
 // feedback immediate; artwork loading must not determine the motion's pacing.
 export const CASSETTE_INSERT_DURATION = 1.4;
-export const CASSETTE_EJECT_DURATION = 1.55;
+export const CASSETTE_EJECT_DURATION = .85;
+export const CASSETTE_REINSERT_DURATION = .9;
+export const CASSETTE_REMOVE_DURATION = 1.1;
 export const CASSETTE_REDUCED_DURATION = .08;
 
 // Normalized contact points shared by the animation and mechanical foley.
@@ -16,6 +18,9 @@ export const CASSETTE_MOTION_CUES = {
   insertSeat: .88,
   ejectRelease: .24,
   ejectLift: .64,
+  reinsertAlign: .48,
+  reinsertSeat: .84,
+  removeClear: .68,
 } as const;
 
 const seated = {
@@ -29,6 +34,19 @@ const seated = {
   rotateZ: 0,
 } satisfies TargetAndTransition;
 
+// EJECT releases the cassette for the listener to handle. It stays close to the
+// bay until they choose to seat it again or lift it out of the player entirely.
+const raised = {
+  ...seated,
+  y: '-10%',
+  z: 35,
+  rotateX: 6,
+  rotateY: -1,
+  rotateZ: 1,
+} satisfies TargetAndTransition;
+
+const reducedRaised = { ...seated, y: '-1%' } satisfies TargetAndTransition;
+
 /** An already visible cassette approaches the deck as one physical object. */
 export const CASSETTE_INITIAL_POSE = {
   ...seated,
@@ -40,7 +58,7 @@ export const CASSETTE_INITIAL_POSE = {
   rotateZ: -6,
 } satisfies TargetAndTransition;
 
-/** Keep the same motion element mounted through inserting → ready → ejecting. */
+/** Keep the same cassette mounted through every seated and raised interaction. */
 export const CASSETTE_MOTION_VARIANTS = {
   inserting: {
     ...seated,
@@ -60,18 +78,48 @@ export const CASSETTE_MOTION_VARIANTS = {
   },
   ready: { ...seated, transition: { duration: 0 } },
   ejecting: {
-    ...seated,
-    x: ['0%', '.5%', '3%', '8%'],
-    y: ['0%', '-6%', '-52%', '-160%'],
-    z: [0, 50, 115, 185],
-    rotateX: [0, 6, 13, 18],
-    rotateY: [0, -1.5, -3, -5],
-    rotateZ: [0, 1.5, 3, 6],
+    ...raised,
+    y: ['0%', '-1.5%', '-7%', '-10%'],
+    z: [0, 6, 27, 35],
+    rotateX: [0, 1.2, 4.5, 6],
+    rotateY: [0, -.2, -.8, -1],
+    rotateZ: [0, .2, .8, 1],
     transition: {
       duration: CASSETTE_EJECT_DURATION,
-      // The latch releases before a continuous, unhurried lift out of the bay.
+      // Release the latch, let the spring lift, then settle within reach.
       times: [0, CASSETTE_MOTION_CUES.ejectRelease, CASSETTE_MOTION_CUES.ejectLift, 1],
-      ease: [[.22, .45, .65, .65], [.25, .25, .75, .75], [.25, .25, .4, 1]],
+      ease: [[.3, 0, .65, .65], [.25, .25, .65, .85], [.25, .25, .3, 1]],
+    },
+  },
+  ejected: { ...raised, transition: { duration: 0 } },
+  reinserting: {
+    ...seated,
+    y: ['-10%', '-4%', '-.6%', '0%'],
+    z: [35, 17, 4, 0],
+    rotateX: [6, 3, .7, 0],
+    rotateY: [-1, -.4, -.1, 0],
+    rotateZ: [1, .4, .1, 0],
+    transition: {
+      duration: CASSETTE_REINSERT_DURATION,
+      times: [0, CASSETTE_MOTION_CUES.reinsertAlign, CASSETTE_MOTION_CUES.reinsertSeat, 1],
+      ease: [[.42, 0, .7, .75], [.25, .25, .65, .95], [.25, .1, .25, 1]],
+    },
+  },
+  removing: {
+    // Null first frames inherit the actual pose, including a cassette being
+    // replaced directly from the seated position, without a jump to raised.
+    opacity: [1, 1, 1, 1, 0],
+    x: [null, '1%', '5%', '8%', '10%'],
+    y: [null, '-38%', '-95%', '-140%', '-165%'],
+    z: [null, 95, 150, 180, 190],
+    scale: 1,
+    rotateX: [null, 11, 16, 18, 18],
+    rotateY: [null, -2, -3, -4, -4],
+    rotateZ: [null, 2, 4, 5, 5],
+    transition: {
+      duration: CASSETTE_REMOVE_DURATION,
+      times: [0, .3, CASSETTE_MOTION_CUES.removeClear, .86, 1],
+      ease: [[.42, 0, .75, .75], [.25, .25, .65, .8], [.25, .25, .6, .85], [.25, .25, .4, 1]],
     },
   },
 } satisfies Variants;
@@ -80,5 +128,8 @@ export const CASSETTE_MOTION_VARIANTS = {
 export const CASSETTE_REDUCED_MOTION_VARIANTS = {
   inserting: { ...seated, y: ['-.2%', '0%'], transition: { duration: CASSETTE_REDUCED_DURATION } },
   ready: { ...seated, transition: { duration: 0 } },
-  ejecting: { ...seated, y: ['0%', '-1%'], transition: { duration: CASSETTE_REDUCED_DURATION } },
+  ejecting: { ...reducedRaised, y: ['0%', '-1%'], transition: { duration: CASSETTE_REDUCED_DURATION } },
+  ejected: { ...reducedRaised, transition: { duration: 0 } },
+  reinserting: { ...seated, y: ['-1%', '0%'], transition: { duration: CASSETTE_REDUCED_DURATION } },
+  removing: { opacity: [1, 0], transition: { duration: CASSETTE_REDUCED_DURATION } },
 } satisfies Variants;

@@ -91,11 +91,17 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
 .icon-button:disabled { opacity: .35; }
 .header-heart.is-liked { color: var(--color-loveline); }
 .header-heart.is-liked svg { fill: currentColor; }
-.deck-bay-area { display: flex; flex: 1; min-height: 0; align-items: center; justify-content: center; container-type: size; }
+.deck-bay-area { display: flex; flex: 1; min-height: 0; padding-top: 26px; align-items: center; justify-content: center; container-type: size; }
 .deck-bay { position: relative; height: min(100cqh, 124.955cqw); width: auto; aspect-ratio: 1122 / 1402; flex-shrink: 0; transform: scale(1.085); }
 .deck-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; pointer-events: none; filter: drop-shadow(0 5px 4px #0009); }
 .deck-cassette-stage { position: absolute; z-index: 2; inset: 0; overflow: visible; perspective-origin: 50% 60%; transform-style: preserve-3d; pointer-events: none; }
 .cassette-insertion { position: absolute; width: 70.7%; top: 5.2%; left: 13.38%; transform-origin: 50% 72%; will-change: transform; }
+.cassette-touch { display: block; width: 100%; padding: 0; border: 0; border-radius: 8px; background: transparent; color: inherit; line-height: 0; pointer-events: auto; }
+.cassette-touch:disabled { pointer-events: none; }
+.cassette-touch:enabled { cursor: pointer; }
+.cassette-touch:focus-visible { outline-offset: 7px; }
+.cassette-remove { flex: 0 0 auto; min-height: 36px; padding: 0 9px; border: 1px solid #a3adb34d; border-radius: 4px; background: #ffffff06; color: var(--text-primary); font-size: 8px; font-weight: 650; letter-spacing: .08em; }
+.cassette-remove:hover { background: #ffffff12; }
 .deck-bay-shine { position: absolute; inset: 6.6% 8.3% 6.5%; border-radius: 2%; pointer-events: none; background: linear-gradient(117deg, #ffffff0b 1%, transparent 32%, #ffffff04 68%, transparent); }
 .deck-console { flex: 0 0 auto; padding: 5px 6px 0; }
 .transport-status { min-height: 32px; margin-bottom: 4px; }

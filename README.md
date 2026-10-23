@@ -11,13 +11,14 @@ npm install
 npm run dev
 npm run typecheck
 npm run lint
+npm run test:transport
 ```
 
 En escritorio, la colección queda junto a la casetera. En móvil, el menú o **INSERT TAPE** abre la colección.
 
 ## Experiencia y movimiento
 
-Loveline prioriza disfrutar una colección pequeña de canciones con el ritual de una casetera física. La tecla responde al momento; el casete se acerca, se alinea y se asienta con un movimiento continuo de **1,4 s**. La expulsión libera el mecanismo y retira el casete en **1,55 s**, sin pausas artificiales. Los sonidos acompañan los puntos de contacto y la música espera a **PLAY**.
+Loveline prioriza disfrutar una colección pequeña de canciones con el ritual de una casetera física. La tecla responde al momento; el casete se acerca, se alinea y se asienta con un movimiento continuo de **1,4 s**. **EJECT** lo levanta en **0,85 s** y lo deja apoyado sobre el mecanismo. Volver a presionarlo lo asienta en **0,9 s**; retirarlo toma **1,1 s**. Los sonidos acompañan los puntos de contacto y la música espera a **PLAY**.
 
 Las imágenes se preparan de antemano para que la carga no marque ese ritmo. Con movimiento reducido, cada transición dura **0,08 s**. Las instrucciones para asistentes de IA están en [AGENTS.md](AGENTS.md); las trayectorias, duraciones y puntos de contacto compartidos con el audio están en `src/config/cassetteMotion.ts`.
 
@@ -26,8 +27,9 @@ Las imágenes se preparan de antemano para que la carga no marque ese ritmo. Con
 1. La casetera comienza vacía. Elegir un casete lo introduce; la música espera a **PLAY**.
 2. **PLAY** reproduce y mueve los carretes; la tecla permanece hundida.
 3. **STOP** detiene el audio y conserva la posición.
-4. **EJECT** reinicia la posición y retira el casete.
-5. Elegir otro casete primero expulsa el anterior y después introduce el nuevo.
+4. **EJECT** pausa la música y deja el casete levantado, conservando la posición de la canción.
+5. Presiona el casete levantado o la tecla **INSERT** para volver a asentarlo. La reproducción espera a **PLAY**.
+6. Presiona fuera del casete, **RETIRAR** o **Escape** para sacarlo de la pantalla y reiniciar su posición. Elegir otro casete retira el anterior y después introduce el nuevo.
 
 La barra permite buscar en la canción; el corazón guarda favoritos por canción en el navegador. Cada casete empieza con una canción y admite varias: en ese caso aparecen controles anterior/siguiente. Al terminar una canción, la reproducción se detiene. Se respeta la preferencia de movimiento reducido.
 

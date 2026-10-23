@@ -3,9 +3,15 @@
  * The waveforms are cached before interaction; playback needs only a source/gain
  * pair per contact, with no downloads, decoding, or compressor look-ahead delay.
  */
-import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_MOTION_CUES } from '../config/cassetteMotion';
+import {
+  CASSETTE_INSERT_DURATION,
+  CASSETTE_EJECT_DURATION,
+  CASSETTE_REINSERT_DURATION,
+  CASSETTE_REMOVE_DURATION,
+  CASSETTE_MOTION_CUES,
+} from '../config/cassetteMotion';
 
-export type MechanicalSound = 'press' | 'play' | 'insert' | 'eject' | 'stop';
+export type MechanicalSound = 'press' | 'play' | 'insert' | 'eject' | 'reinsert' | 'remove' | 'stop';
 type ButtonSound = 'press' | 'play' | 'stop';
 type Voice = { source: AudioBufferSourceNode; gain: GainNode };
 type MechanicalAudio = {
@@ -14,6 +20,7 @@ type MechanicalAudio = {
   buttons: Record<ButtonSound, AudioBuffer[]>;
   tick: AudioBuffer;
   slide: AudioBuffer;
+  guide: AudioBuffer;
   spring: AudioBuffer;
   voices: Set<Voice>;
   motionVoices: Set<Voice>;
@@ -108,12 +115,12 @@ function buttonBuffer(context: AudioContext, kind: ButtonSound, take: number): A
   return finishBuffer(context, data);
 }
 
-function frictionBuffer(context: AudioContext, spring: boolean): AudioBuffer {
+function frictionBuffer(context: AudioContext, spring: boolean, textureDuration?: number): AudioBuffer {
   // Generate enough texture at its natural pitch for the designed travel time.
   // Longer motion should not turn a short spring or slide into slowed-down audio.
-  const duration = spring
+  const duration = textureDuration ?? (spring
     ? CASSETTE_EJECT_DURATION * CASSETTE_MOTION_CUES.ejectRelease
-    : CASSETTE_INSERT_DURATION * CASSETTE_MOTION_CUES.insertSeat;
+    : CASSETTE_INSERT_DURATION * CASSETTE_MOTION_CUES.insertSeat);
   const data = new Float32Array(Math.ceil(context.sampleRate * duration));
   const random = randomSource(spring ? 1207 : 8129);
   let low = 0;
@@ -155,6 +162,10 @@ function createAudio(): MechanicalAudio | undefined {
     },
     tick: finishBuffer(context, tickData),
     slide: frictionBuffer(context, false),
+    guide: frictionBuffer(context, false, Math.max(
+      CASSETTE_REINSERT_DURATION * CASSETTE_MOTION_CUES.reinsertSeat,
+      CASSETTE_REMOVE_DURATION * CASSETTE_MOTION_CUES.removeClear,
+    )),
     spring: frictionBuffer(context, true),
     voices: new Set(),
     motionVoices: new Set(),
@@ -227,24 +238,38 @@ function scheduleSound(system: MechanicalAudio, kind: MechanicalSound, motionDur
     source.stop(at + .008);
   }
   system.motionVoices.clear();
-  const fallback = kind === 'insert' ? CASSETTE_INSERT_DURATION : CASSETTE_EJECT_DURATION;
+  const fallback = {
+    insert: CASSETTE_INSERT_DURATION,
+    eject: CASSETTE_EJECT_DURATION,
+    reinsert: CASSETTE_REINSERT_DURATION,
+    remove: CASSETTE_REMOVE_DURATION,
+  }[kind];
   const duration = Number.isFinite(motionDuration) ? Math.max(.02, motionDuration!) : fallback;
   const clip = (buffer: AudioBuffer, position: number, strength: number, rate = variation) => {
     contact(system, buffer, at + duration * position, strength, rate, duration * (1 - position), true);
   };
   // A reduced-motion transition needs one small contact, without a trailing slide.
   if (duration <= .12) {
-    clip(system.buttons[kind === 'insert' ? 'play' : 'stop'][take], 0, .7);
+    if (kind === 'remove') clip(system.tick, 0, .2);
+    else clip(system.buttons[kind === 'eject' ? 'stop' : 'play'][take], 0, .7);
     return;
   }
   if (kind === 'insert') {
     contact(system, system.slide, at, .72, variation, duration * CASSETTE_MOTION_CUES.insertSeat, true);
     [.12, .32, CASSETTE_MOTION_CUES.insertAlign, .76].forEach((position, index) => clip(system.tick, position, .22 + index * .07, 1.12 - index * .07));
     clip(system.buttons.play[take], CASSETTE_MOTION_CUES.insertSeat, .9, .96);
+  } else if (kind === 'reinsert') {
+    contact(system, system.guide, at, .48, variation, duration * CASSETTE_MOTION_CUES.reinsertSeat, true);
+    clip(system.tick, CASSETTE_MOTION_CUES.reinsertAlign, .23, 1.02);
+    clip(system.buttons.play[take], CASSETTE_MOTION_CUES.reinsertSeat, .82, .98);
+  } else if (kind === 'remove') {
+    // The latch is already open. Lifting the tape out has only soft guide drag.
+    contact(system, system.guide, at + duration * .02, .3, variation, duration * CASSETTE_MOTION_CUES.removeClear, true);
   } else {
-    clip(system.buttons.stop[take], 0, .95);
-    contact(system, system.spring, at + duration * .02, .8, variation, duration * CASSETTE_MOTION_CUES.ejectRelease, true);
-    [.1, CASSETTE_MOTION_CUES.ejectRelease, .44, CASSETTE_MOTION_CUES.ejectLift].forEach((position, index) => clip(system.tick, position, .46 - index * .09, 1.05 - index * .08));
+    clip(system.buttons.stop[take], 0, .85);
+    contact(system, system.spring, at + duration * .02, .68, variation, duration * CASSETTE_MOTION_CUES.ejectRelease, true);
+    clip(system.tick, CASSETTE_MOTION_CUES.ejectRelease, .22, 1.02);
+    clip(system.tick, CASSETTE_MOTION_CUES.ejectLift, .1, .98);
   }
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MIXTAPES, resolveAsset, type Mixtape } from '../data/mixtapes';
-import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_REDUCED_DURATION, type CassetteMotionPhase, type CassetteState } from '../config/cassetteMotion';
+import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_REINSERT_DURATION, CASSETTE_REMOVE_DURATION, CASSETTE_REDUCED_DURATION, type CassetteMotionPhase, type CassetteState } from '../config/cassetteMotion';
 import { playMechanicalSound } from '../utils/mechanicalAudio';
 
 export type { CassetteMotionPhase, CassetteState } from '../config/cassetteMotion';
@@ -69,7 +69,7 @@ function prepareSelection(id: string): void {
 }
 
 function isBusy(state: CassetteState): boolean {
-  return state === 'loading' || state === 'inserting' || state === 'ejecting';
+  return state === 'loading' || state === 'inserting' || state === 'ejecting' || state === 'reinserting' || state === 'removing';
 }
 
 /** Cassette loading and physical transitions; music playback belongs to App. */
@@ -81,6 +81,8 @@ export function useCassetteTransport(reducedMotion = false) {
   const mounted = useRef(true);
   const insertDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_INSERT_DURATION;
   const ejectDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_EJECT_DURATION;
+  const reinsertDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_REINSERT_DURATION;
+  const removeDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_REMOVE_DURATION;
 
   useEffect(() => {
     mounted.current = true;
@@ -120,6 +122,22 @@ export function useCassetteTransport(reducedMotion = false) {
     setSnapshot(next);
   }, []);
 
+  const reinsert = useCallback(() => {
+    if (!mounted.current || current.current.state !== 'ejected' || !current.current.selectedId) return;
+    requestToken.current += 1;
+    pending.current = null;
+    commit({ ...current.current, state: 'reinserting', error: '' });
+    playMechanicalSound('reinsert', reinsertDuration);
+  }, [commit, reinsertDuration]);
+
+  const remove = useCallback(() => {
+    if (!mounted.current || current.current.state !== 'ejected' || !current.current.selectedId) return;
+    requestToken.current += 1;
+    pending.current = null;
+    commit({ ...current.current, state: 'removing', error: '' });
+    playMechanicalSound('remove', removeDuration);
+  }, [commit, removeDuration]);
+
   const select = useCallback((id: string) => {
     if (!mounted.current || isBusy(current.current.state)) return;
     // This runs synchronously in the selecting gesture, before image decoding.
@@ -129,18 +147,19 @@ export function useCassetteTransport(reducedMotion = false) {
       commit({ ...current.current, error: 'No se encontró ese casete. Elige otro de la colección.' });
       return;
     }
-    if (current.current.state === 'ready' && current.current.selectedId === id) {
-      commit({ ...current.current, error: '' });
+    if (current.current.selectedId === id) {
+      if (current.current.state === 'ejected') reinsert();
+      else commit({ ...current.current, error: '' });
       return;
     }
 
     const token = ++requestToken.current;
     pending.current = { id, loaded: false, error: '' };
     if (current.current.selectedId) {
-      // Move immediately while the next design decodes, instead of serializing
-      // a network wait, ejection, and insertion after the user's click.
-      commit({ ...current.current, state: 'ejecting', error: '' });
-      playMechanicalSound('eject', ejectDuration);
+      // A new selection takes the old tape away from its current pose while the
+      // next design decodes. Manual EJECT leaves the tape available to reinsert.
+      commit({ ...current.current, state: 'removing', error: '' });
+      playMechanicalSound('remove', removeDuration);
     } else {
       commit({ ...current.current, state: 'loading', error: '' });
     }
@@ -155,14 +174,14 @@ export function useCassetteTransport(reducedMotion = false) {
       }
     }, () => {
       if (!mounted.current || token !== requestToken.current || !pending.current) return;
-      // Let an outgoing cassette finish its motion even if the new art fails.
+      // Let an outgoing cassette finish its removal even if the new art fails.
       pending.current.error = LOAD_ERROR;
       if (current.current.state === 'loading') {
         pending.current = null;
         commit({ ...EMPTY, error: LOAD_ERROR });
       }
     });
-  }, [commit, ejectDuration, insertDuration]);
+  }, [commit, insertDuration, reinsert, removeDuration]);
 
   const eject = useCallback(() => {
     if (!mounted.current || current.current.state !== 'ready' || !current.current.selectedId) return;
@@ -174,8 +193,12 @@ export function useCassetteTransport(reducedMotion = false) {
 
   const completeMotion = useCallback((phase: CassetteMotionPhase, cassetteId: string) => {
     if (!mounted.current || current.current.state !== phase || current.current.selectedId !== cassetteId) return;
-    if (phase === 'inserting') {
+    if (phase === 'inserting' || phase === 'reinserting') {
       commit({ ...current.current, state: 'ready' });
+      return;
+    }
+    if (phase === 'ejecting') {
+      commit({ ...current.current, state: 'ejected' });
       return;
     }
 
@@ -202,6 +225,8 @@ export function useCassetteTransport(reducedMotion = false) {
     select,
     prepareSelection,
     eject,
+    reinsert,
+    remove,
     completeMotion,
   };
 }
