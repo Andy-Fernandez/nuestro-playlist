@@ -11,6 +11,7 @@
 - Synchronize mechanical sounds with the visible contacts and movement. Preserve the character of clicks and springs when changing animation duration; do not simply slow all audio playback.
 - Keep image decoding, caching, and song buffering efficient so deliberate pacing comes from the interaction design rather than loading stalls or dropped frames.
 - Respect reduced-motion preferences and keyboard access. Music starts only when the user presses PLAY.
+- The RITMO button selects slow, normal, or fast cassette movement and remembers it in localStorage for that device/browser. Apply the same timing to motion and mechanical sound cues, preserve music playback speed, and do not change animation speed mid-transition. Reduced motion takes priority.
 - Evaluate changes by watching and listening to a full sequence: select a tape, insert, play, stop, change tapes, and eject, on mobile and desktop.
 
 ## Implementation and verification

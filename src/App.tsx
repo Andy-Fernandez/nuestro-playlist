@@ -6,6 +6,8 @@ import { useCassetteTransport, type CassetteMotionPhase } from './hooks/useCasse
 import { useAudioEngine } from './hooks/useAudioEngine';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { playMechanicalSound, prepareMechanicalAudio } from './utils/mechanicalAudio';
+import { readMotionSpeed, saveMotionSpeed } from './utils/motionSpeed';
+import { MOTION_SPEEDS } from './config/cassetteMotion';
 
 function getLikes(): Record<string, boolean> {
   try {
@@ -18,7 +20,9 @@ function getLikes(): Record<string, boolean> {
 
 export default function App() {
   const reducedMotion = useReducedMotion();
-  const transport = useCassetteTransport(reducedMotion);
+  const [motionSpeed, setMotionSpeed] = useState(readMotionSpeed);
+  const transport = useCassetteTransport(reducedMotion, motionSpeed);
+  useEffect(() => { saveMotionSpeed(motionSpeed); }, [motionSpeed]);
   const { selectedId, state: cassetteState, busy } = transport;
   const [trackIndexes, setTrackIndexes] = useState<Record<string, number>>({});
   const trackIndex = selectedId ? trackIndexes[selectedId] ?? 0 : 0;
@@ -170,6 +174,11 @@ export default function App() {
           playing={audio.playing} currentTime={audio.currentTime} duration={audio.duration}
           error={transport.error || (audio.error ? 'No se pudo reproducir el audio. Prueba con PLAY otra vez.' : '')}
           liked={track ? Boolean(likes[track.id]) : false} reducedMotion={reducedMotion}
+          motionSpeed={motionSpeed} onChangeMotionSpeed={() => {
+            if (busy) return;
+            playMechanicalSound('press');
+            setMotionSpeed(previous => MOTION_SPEEDS[(MOTION_SPEEDS.indexOf(previous) + 1) % MOTION_SPEEDS.length]);
+          }}
           onOpenLibrary={openLibrary} onPlay={play} onStop={stop} onEject={eject}
           onReinsert={transport.reinsert} onRemove={removeCassette}
           onMotionComplete={completeMotion}

@@ -106,7 +106,12 @@ input:focus-visible { outline: 2px solid var(--color-loveline); outline-offset: 
 .cassette-remove:hover { background: #ffffff12; }
 .deck-bay-shine { position: absolute; inset: 6.6% 8.3% 6.5%; border-radius: 2%; pointer-events: none; background: linear-gradient(117deg, #ffffff0b 1%, transparent 32%, #ffffff04 68%, transparent); }
 .deck-console { flex: 0 0 auto; padding: 5px 6px 0; }
-.transport-status { min-height: 32px; margin-bottom: 4px; }
+.transport-status { min-height: 32px; margin-bottom: 4px; gap: 6px; }
+.motion-speed { display: grid; flex: 0 0 auto; min-width: 58px; min-height: 36px; place-content: center; gap: 2px; padding: 3px 6px; border: 1px solid #a3adb34d; border-radius: 5px; background: #ffffff06; color: var(--text-primary); }
+.motion-speed > span { color: var(--text-secondary); font-size: 6px; letter-spacing: .16em; }
+.motion-speed > strong { font-size: 9px; font-weight: 600; }
+.motion-speed:hover:not(:disabled) { background: #ffffff12; }
+.motion-speed:disabled { opacity: .45; }
 .status-led { width: 9px; height: 9px; border: 1.5px solid #a57461; border-radius: 50%; background: #633b31; box-shadow: inset 0 1px 2px #170b09cc, 0 1px 1px #ffffff1c; }
 .status-led.is-playing { background: #f48e75; box-shadow: inset 0 1px 1px #fff7, 0 0 8px #f78768a0; }
 .status-led.is-busy { animation: led-pulse .85s ease-in-out infinite alternate; }

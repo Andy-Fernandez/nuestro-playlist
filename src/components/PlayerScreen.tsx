@@ -3,7 +3,7 @@ import type { Song, Mixtape } from '../data/mixtapes';
 import { formatTime } from '../utils/deck';
 import { CassetteObject } from './CassetteObject';
 import { Icon } from './Icon';
-import { CASSETTE_PERSPECTIVE, type CassetteState, type CassetteMotionPhase } from '../config/cassetteMotion';
+import { CASSETTE_PERSPECTIVE, MOTION_SPEED_LABELS, type MotionSpeed, type CassetteState, type CassetteMotionPhase } from '../config/cassetteMotion';
 
 type Props = {
   mix: Mixtape | null;
@@ -17,6 +17,8 @@ type Props = {
   error: string;
   liked: boolean;
   reducedMotion: boolean;
+  motionSpeed: MotionSpeed;
+  onChangeMotionSpeed: () => void;
   onOpenLibrary: () => void;
   onPlay: () => void;
   onStop: () => void;
@@ -29,7 +31,7 @@ type Props = {
   onToggleLike: () => void;
 };
 
-export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, playing, currentTime, duration, error, liked, reducedMotion, onOpenLibrary, onPlay, onStop, onEject, onReinsert, onRemove, onMotionComplete, onSelectTrack, onSeek, onToggleLike }: Props) {
+export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, playing, currentTime, duration, error, liked, reducedMotion, motionSpeed, onChangeMotionSpeed, onOpenLibrary, onPlay, onStop, onEject, onReinsert, onRemove, onMotionComplete, onSelectTrack, onSeek, onToggleLike }: Props) {
   const progress = duration > 0 ? Math.min(1, currentTime / duration) : 0;
   const ready = cassetteState === 'ready';
   const ejected = cassetteState === 'ejected';
@@ -56,7 +58,7 @@ export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, pl
         <div className="deck-cassette-stage" style={{ perspective: CASSETTE_PERSPECTIVE }}>
           {mix && <CassetteObject key={mix.id} mix={mix} state={cassetteState}
             running={playing && ready} progress={progress} resetKey={`${mix.id}:${track?.id}`}
-            reducedMotion={reducedMotion} onReinsert={onReinsert} onRemove={onRemove}
+            reducedMotion={reducedMotion} motionSpeed={motionSpeed} onReinsert={onReinsert} onRemove={onRemove}
             onMotionComplete={onMotionComplete} />}
         </div>
         <div className="deck-bay-shine" aria-hidden="true" />
@@ -66,6 +68,10 @@ export function PlayerScreen({ mix, tracks, track, trackIndex, cassetteState, pl
     <div className="deck-console">
       <div className="transport-status flex items-center justify-between">
         <div className="flex items-center gap-2.5"><span className={`status-led ${playing ? 'is-playing' : ''} ${busy ? 'is-busy' : ''}`} aria-hidden="true" /><span className="status-label" role="status">{status}</span></div>
+        <button type="button" className="motion-speed" disabled={busy} onClick={onChangeMotionSpeed}
+          aria-label={`Velocidad de animación: ${MOTION_SPEED_LABELS[motionSpeed]}. Cambiar velocidad`} title="Velocidad del movimiento del casete">
+          <span>RITMO</span><strong>{MOTION_SPEED_LABELS[motionSpeed]}</strong>
+        </button>
         <output className={`digital-clock ${playing ? 'is-on' : ''}`} aria-label={`Tiempo de reproducción: ${formatTime(currentTime)}`}>{formatTime(currentTime)}</output>
       </div>
       <div className="timeline-row">

@@ -14,7 +14,7 @@ const motionModule = { exports: {} };
 runInNewContext(compile('../src/config/cassetteMotion.ts'), { exports: motionModule.exports });
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
-function createTransport(reducedMotion = false) {
+function createTransport(reducedMotion = false, motionSpeed = 'normal') {
   const slots = [];
   const effects = [];
   const images = [];
@@ -110,7 +110,7 @@ function createTransport(reducedMotion = false) {
 
   const render = () => {
     cursor = 0;
-    const transport = exports.useCassetteTransport(reducedMotion);
+    const transport = exports.useCassetteTransport(reducedMotion, motionSpeed);
     effects.splice(0).forEach(effect => effect());
     return transport;
   };
@@ -334,4 +334,56 @@ test('throw completion removes once and respects reduced motion sound timing', a
     harness.value.completeMotion('removing', 'a');
     expectState(harness, 'empty', null);
   }
+});
+
+test('saved motion speed survives reload and unavailable storage has a safe fallback', () => {
+  const data = new Map();
+  const localStorage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
+  const load = storage => {
+    const exports = {};
+    runInNewContext(compile('../src/utils/motionSpeed.ts'), {
+      exports, localStorage: storage, require: () => motionModule.exports,
+    });
+    return exports;
+  };
+  assert.equal(load(localStorage).readMotionSpeed(), 'normal');
+  for (const speed of ['slow', 'normal', 'fast']) {
+    load(localStorage).saveMotionSpeed(speed);
+    assert.equal(load(localStorage).readMotionSpeed(), speed);
+  }
+  data.set('loveline-motion-speed', 'invalid');
+  assert.equal(load(localStorage).readMotionSpeed(), 'normal');
+  const blocked = load({ getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); } });
+  assert.equal(blocked.readMotionSpeed(), 'normal');
+  assert.doesNotThrow(() => blocked.saveMotionSpeed('slow'));
+});
+
+test('speed settings keep animation and sound durations aligned across the lifecycle', async () => {
+  const { getCassetteMotionVariants, cassetteDuration, CASSETTE_THROW_DURATION, CASSETTE_REDUCED_DURATION } = motionModule.exports;
+  for (const speed of ['slow', 'normal', 'fast']) {
+    for (const reduced of [false, true]) {
+      const harness = createTransport(reduced, speed);
+      const variants = reduced ? motionModule.exports.CASSETTE_REDUCED_MOTION_VARIANTS : getCassetteMotionVariants(speed);
+      const duration = phase => {
+        const variant = typeof variants[phase] === 'function' ? variants[phase](null) : variants[phase];
+        return variant.transition.duration;
+      };
+      harness.value.select('a');
+      await harness.finishImages();
+      assert.equal(harness.sounds.at(-1)[1], duration('inserting'));
+      harness.value.completeMotion('inserting', 'a');
+      raise(harness);
+      assert.equal(harness.sounds.at(-1)[1], duration('ejecting'));
+      harness.value.reinsert();
+      assert.equal(harness.sounds.at(-1)[1], duration('reinserting'));
+      harness.value.completeMotion('reinserting', 'a');
+      raise(harness);
+      harness.value.remove();
+      assert.equal(harness.sounds.at(-1)[1], duration('removing'));
+      if (!reduced) assert.equal(getCassetteMotionVariants(speed).removing({ x: 1, y: 0 }).transition.duration, cassetteDuration(CASSETTE_THROW_DURATION, false, speed));
+      else assert.equal(duration('removing'), CASSETTE_REDUCED_DURATION);
+    }
+  }
+  assert.ok(getCassetteMotionVariants('slow').inserting.transition.duration > getCassetteMotionVariants('normal').inserting.transition.duration);
+  assert.ok(getCassetteMotionVariants('fast').inserting.transition.duration < getCassetteMotionVariants('normal').inserting.transition.duration);
 });

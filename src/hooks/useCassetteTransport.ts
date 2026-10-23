@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MIXTAPES, resolveAsset, type Mixtape } from '../data/mixtapes';
-import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_REINSERT_DURATION, CASSETTE_REMOVE_DURATION, CASSETTE_THROW_DURATION, CASSETTE_REDUCED_DURATION, type CassetteMotionPhase, type CassetteState } from '../config/cassetteMotion';
+import { CASSETTE_INSERT_DURATION, CASSETTE_EJECT_DURATION, CASSETTE_REINSERT_DURATION, CASSETTE_REMOVE_DURATION, CASSETTE_THROW_DURATION, cassetteDuration, type MotionSpeed, type CassetteMotionPhase, type CassetteState } from '../config/cassetteMotion';
 import { playMechanicalSound } from '../utils/mechanicalAudio';
 
 export type { CassetteMotionPhase, CassetteState } from '../config/cassetteMotion';
@@ -73,16 +73,16 @@ function isBusy(state: CassetteState): boolean {
 }
 
 /** Cassette loading and physical transitions; music playback belongs to App. */
-export function useCassetteTransport(reducedMotion = false) {
+export function useCassetteTransport(reducedMotion = false, motionSpeed: MotionSpeed = 'normal') {
   const [snapshot, setSnapshot] = useState<TransportSnapshot>(EMPTY);
   const current = useRef(snapshot);
   const pending = useRef<PendingSelection | null>(null);
   const requestToken = useRef(0);
   const mounted = useRef(true);
-  const insertDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_INSERT_DURATION;
-  const ejectDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_EJECT_DURATION;
-  const reinsertDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_REINSERT_DURATION;
-  const removeDuration = reducedMotion ? CASSETTE_REDUCED_DURATION : CASSETTE_REMOVE_DURATION;
+  const insertDuration = cassetteDuration(CASSETTE_INSERT_DURATION, reducedMotion, motionSpeed);
+  const ejectDuration = cassetteDuration(CASSETTE_EJECT_DURATION, reducedMotion, motionSpeed);
+  const reinsertDuration = cassetteDuration(CASSETTE_REINSERT_DURATION, reducedMotion, motionSpeed);
+  const removeDuration = cassetteDuration(CASSETTE_REMOVE_DURATION, reducedMotion, motionSpeed);
 
   useEffect(() => {
     mounted.current = true;
@@ -135,8 +135,8 @@ export function useCassetteTransport(reducedMotion = false) {
     requestToken.current += 1;
     pending.current = null;
     commit({ ...current.current, state: 'removing', error: '' });
-    playMechanicalSound('remove', throwing && !reducedMotion ? CASSETTE_THROW_DURATION : removeDuration);
-  }, [commit, reducedMotion, removeDuration]);
+    playMechanicalSound('remove', throwing ? cassetteDuration(CASSETTE_THROW_DURATION, reducedMotion, motionSpeed) : removeDuration);
+  }, [commit, reducedMotion, motionSpeed, removeDuration]);
 
   const select = useCallback((id: string) => {
     if (!mounted.current || isBusy(current.current.state)) return;

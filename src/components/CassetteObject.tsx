@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { animate, motion, useMotionValue, type PanInfo } from 'motion/react';
 import type { Mixtape } from '../data/mixtapes';
 import {
-  CASSETTE_INITIAL_POSE, CASSETTE_MOTION_VARIANTS, CASSETTE_REDUCED_MOTION_VARIANTS,
+  CASSETTE_INITIAL_POSE, getCassetteMotionVariants, CASSETTE_REDUCED_MOTION_VARIANTS,
   CASSETTE_THROW_TRANSITION, CASSETTE_RETURN_TRANSITION, CASSETTE_REDUCED_DURATION, getCassetteThrow, getCassetteThrowTarget,
-  type CassetteMotionPhase, type CassetteState, type CassetteThrow,
+  cassetteDuration, type MotionSpeed, type CassetteMotionPhase, type CassetteState, type CassetteThrow,
 } from '../config/cassetteMotion';
 import { PhysicalCassette } from './PhysicalCassette';
 
@@ -15,13 +15,14 @@ type Props = {
   progress: number;
   resetKey: string;
   reducedMotion: boolean;
+  motionSpeed: MotionSpeed;
   onReinsert: () => void;
   onRemove: (throwing?: boolean) => void;
   onMotionComplete: (phase: CassetteMotionPhase, id: string) => void;
 };
 
 /** Separate the listener's hand movement from the cassette's deck perspective. */
-export function CassetteObject({ mix, state, running, progress, resetKey, reducedMotion, onReinsert, onRemove, onMotionComplete }: Props) {
+export function CassetteObject({ mix, state, running, progress, resetKey, reducedMotion, motionSpeed, onReinsert, onRemove, onMotionComplete }: Props) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const suppressClick = useRef(false);
@@ -29,15 +30,17 @@ export function CassetteObject({ mix, state, running, progress, resetKey, reduce
   const [throwDirection, setThrowDirection] = useState<CassetteThrow | null>(null);
   const ejected = state === 'ejected';
   const phase = state === 'loading' || state === 'empty' ? 'ready' : state;
+  const variants = useMemo(() => getCassetteMotionVariants(motionSpeed), [motionSpeed]);
 
   useEffect(() => {
     if (state !== 'removing' || !throwDirection || reducedMotion) return;
     // Continue from the hand's release point, far enough to clear any viewport.
     const target = getCassetteThrowTarget({ x: x.get(), y: y.get() }, throwDirection, { width: window.innerWidth, height: window.innerHeight });
-    const horizontal = animate(x, target.x, CASSETTE_THROW_TRANSITION);
-    const vertical = animate(y, target.y, CASSETTE_THROW_TRANSITION);
+    const transition = { ...CASSETTE_THROW_TRANSITION, duration: cassetteDuration(CASSETTE_THROW_TRANSITION.duration, false, motionSpeed) };
+    const horizontal = animate(x, target.x, transition);
+    const vertical = animate(y, target.y, transition);
     return () => { horizontal.stop(); vertical.stop(); };
-  }, [state, throwDirection, reducedMotion, x, y]);
+  }, [state, throwDirection, reducedMotion, motionSpeed, x, y]);
 
   const settle = () => {
     const transition = reducedMotion ? { duration: CASSETTE_REDUCED_DURATION } : CASSETTE_RETURN_TRANSITION;
@@ -55,7 +58,7 @@ export function CassetteObject({ mix, state, running, progress, resetKey, reduce
   return <motion.div className="cassette-insertion" data-cassette-object
     initial={reducedMotion ? false : CASSETTE_INITIAL_POSE}
     animate={phase} custom={throwDirection}
-    variants={reducedMotion ? CASSETTE_REDUCED_MOTION_VARIANTS : CASSETTE_MOTION_VARIANTS}
+    variants={reducedMotion ? CASSETTE_REDUCED_MOTION_VARIANTS : variants}
     onAnimationComplete={definition => {
       if (definition === 'inserting' || definition === 'ejecting' || definition === 'reinserting' || definition === 'removing') onMotionComplete(definition, mix.id);
     }}>

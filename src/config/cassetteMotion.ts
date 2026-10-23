@@ -12,6 +12,13 @@ export const CASSETTE_REINSERT_DURATION = .9;
 export const CASSETTE_REMOVE_DURATION = 1.1;
 export const CASSETTE_THROW_DURATION = .68;
 export const CASSETTE_REDUCED_DURATION = .08;
+export const MOTION_SPEEDS = ['slow', 'normal', 'fast'] as const;
+export type MotionSpeed = typeof MOTION_SPEEDS[number];
+export const MOTION_SPEED_LABELS: Record<MotionSpeed, string> = { slow: 'Lenta', normal: 'Normal', fast: 'Rápida' };
+const MOTION_SPEED_RATES: Record<MotionSpeed, number> = { slow: .7, normal: 1, fast: 1.5 };
+export function cassetteDuration(duration: number, reducedMotion: boolean, speed: MotionSpeed = 'normal'): number {
+  return reducedMotion ? CASSETTE_REDUCED_DURATION : duration / MOTION_SPEED_RATES[speed];
+}
 export const CASSETTE_THROW_TRANSITION = { duration: CASSETTE_THROW_DURATION, ease: [.2, .65, .35, 1] as const };
 export const CASSETTE_RETURN_TRANSITION = { type: 'spring' as const, stiffness: 240, damping: 28 };
 
@@ -79,7 +86,7 @@ export const CASSETTE_INITIAL_POSE = {
 } satisfies TargetAndTransition;
 
 /** Keep the same cassette mounted through every seated and raised interaction. */
-export const CASSETTE_MOTION_VARIANTS = {
+export const getCassetteMotionVariants = (speed: MotionSpeed = 'normal') => ({
   inserting: {
     ...seated,
     x: ['-7%', '-1%', '0%', '0%'],
@@ -89,7 +96,7 @@ export const CASSETTE_MOTION_VARIANTS = {
     rotateY: [-6, -1.5, -.2, 0],
     rotateZ: [-6, -1.5, -.2, 0],
     transition: {
-      duration: CASSETTE_INSERT_DURATION,
+      duration: cassetteDuration(CASSETTE_INSERT_DURATION, false, speed),
       times: [0, CASSETTE_MOTION_CUES.insertAlign, CASSETTE_MOTION_CUES.insertSeat, 1],
       // Build momentum, guide the tape into alignment, then ease into the latch.
       // Middle segments carry movement through instead of easing to a full stop.
@@ -105,7 +112,7 @@ export const CASSETTE_MOTION_VARIANTS = {
     rotateY: [0, -.2, -.8, -1],
     rotateZ: [0, .2, .8, 1],
     transition: {
-      duration: CASSETTE_EJECT_DURATION,
+      duration: cassetteDuration(CASSETTE_EJECT_DURATION, false, speed),
       // Release the latch, let the spring lift, then settle within reach.
       times: [0, CASSETTE_MOTION_CUES.ejectRelease, CASSETTE_MOTION_CUES.ejectLift, 1],
       ease: [[.3, 0, .65, .65], [.25, .25, .65, .85], [.25, .25, .3, 1]],
@@ -120,7 +127,7 @@ export const CASSETTE_MOTION_VARIANTS = {
     rotateY: [-1, -.4, -.1, 0],
     rotateZ: [1, .4, .1, 0],
     transition: {
-      duration: CASSETTE_REINSERT_DURATION,
+      duration: cassetteDuration(CASSETTE_REINSERT_DURATION, false, speed),
       times: [0, CASSETTE_MOTION_CUES.reinsertAlign, CASSETTE_MOTION_CUES.reinsertSeat, 1],
       ease: [[.42, 0, .7, .75], [.25, .25, .65, .95], [.25, .1, .25, 1]],
     },
@@ -128,7 +135,7 @@ export const CASSETTE_MOTION_VARIANTS = {
   removing: (throwDirection: CassetteThrow | null) => throwDirection ? {
     // The inner object carries the release trajectory; keep its raised pose.
     opacity: [1, 1, 0],
-    transition: { duration: CASSETTE_THROW_DURATION, times: [0, .75, 1], ease: 'linear' },
+    transition: { duration: cassetteDuration(CASSETTE_THROW_DURATION, false, speed), times: [0, .75, 1], ease: 'linear' },
   } : {
     // Null first frames inherit the actual pose, including a cassette being
     // replaced directly from the seated position, without a jump to raised.
@@ -141,12 +148,14 @@ export const CASSETTE_MOTION_VARIANTS = {
     rotateY: [null, -2, -3, -4, -4],
     rotateZ: [null, 2, 4, 5, 5],
     transition: {
-      duration: CASSETTE_REMOVE_DURATION,
+      duration: cassetteDuration(CASSETTE_REMOVE_DURATION, false, speed),
       times: [0, .3, CASSETTE_MOTION_CUES.removeClear, .86, 1],
       ease: [[.42, 0, .75, .75], [.25, .25, .65, .8], [.25, .25, .6, .85], [.25, .25, .4, 1]],
     },
   },
-} satisfies Variants;
+} satisfies Variants);
+
+export const CASSETTE_MOTION_VARIANTS = getCassetteMotionVariants();
 
 /** Minimal travel still completes through the same animation callback. */
 export const CASSETTE_REDUCED_MOTION_VARIANTS = {

@@ -22,6 +22,8 @@ Loveline prioriza disfrutar una colección pequeña de canciones con el ritual d
 
 Las imágenes se preparan de antemano para que la carga no marque ese ritmo. Con movimiento reducido, cada transición dura **0,08 s**. Las instrucciones para asistentes de IA están en [AGENTS.md](AGENTS.md); las trayectorias, duraciones y puntos de contacto compartidos con el audio están en `src/config/cassetteMotion.ts`.
 
+El botón **RITMO**, junto al reloj, alterna entre **Lenta**, **Normal** y **Rápida**. La elección se guarda en ese navegador y dispositivo y se restaura al abrir la aplicación. Ajusta la entrada, expulsión, reinserción, retirada y lanzamiento del casete, con sus sonidos sincronizados. La velocidad de la música se conserva. El botón espera a que termine el movimiento actual; la preferencia de movimiento reducido tiene prioridad.
+
 ## Uso
 
 1. La casetera comienza vacía. Elegir un casete lo introduce; la música espera a **PLAY**.
